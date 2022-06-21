@@ -7,6 +7,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
+	providercorev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
+
 	batchv1 "k8s.io/api/batch/v1"
 )
 
@@ -27,7 +29,7 @@ func jobSpecFields(specUpdatable bool) map[string]*schema.Schema {
 			ForceNew:    true,
 			MaxItems:    1,
 			Elem: &schema.Resource{
-				Schema: podSpecFields(specUpdatable, false),
+				Schema: providercorev1.PodSpecFields(specUpdatable, false),
 			},
 		},
 	}

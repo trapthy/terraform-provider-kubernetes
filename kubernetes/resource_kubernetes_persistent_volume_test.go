@@ -14,6 +14,8 @@ import (
 	api "k8s.io/api/core/v1"
 	apierrs "k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+
+	providercorev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
 )
 
 func TestAccKubernetesPersistentVolume_minimal(t *testing.T) {
@@ -76,7 +78,7 @@ func TestAccKubernetesPersistentVolume_azure_ManagedDiskExpectErrors(t *testing.
 	location := os.Getenv("TF_VAR_location")
 	subscriptionID := os.Getenv("ARM_SUBSCRIPTION_ID")
 	diskURI := "/subscriptions/" + subscriptionID + "/resourceGroups/" + name + "/providers/Microsoft.Compute/disks/" + name
-	wantError := persistentVolumeAzureManagedError
+	wantError := providercorev1.PersistentVolumeAzureManagedError
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); skipIfNotRunningInAks(t) },
@@ -110,7 +112,7 @@ func TestAccKubernetesPersistentVolume_azure_blobStorageDisk(t *testing.T) {
 	name := fmt.Sprintf("tfacctest%s", randString)
 	location := os.Getenv("TF_VAR_location")
 	diskURI := "https://" + name + ".blob.core.windows.net/" + name
-	wantError := persistentVolumeAzureBlobError
+	wantError := providercorev1.PersistentVolumeAzureBlobError
 
 	resource.Test(t, resource.TestCase{
 		PreCheck:          func() { testAccPreCheck(t); skipIfNotRunningInAks(t) },

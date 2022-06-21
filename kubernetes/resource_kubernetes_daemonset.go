@@ -17,6 +17,8 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	pkgApi "k8s.io/apimachinery/pkg/types"
 	"k8s.io/client-go/kubernetes"
+
+	providercorev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
 )
 
 func resourceKubernetesDaemonSet() *schema.Resource {
@@ -119,7 +121,7 @@ func resourceKubernetesDaemonSetSchemaV1() map[string]*schema.Schema {
 						Required:    true,
 						MaxItems:    1,
 						Elem: &schema.Resource{
-							Schema: podTemplateFields("daemon set"),
+							Schema: providercorev1.PodTemplateFields("daemon set"),
 						},
 					},
 				},

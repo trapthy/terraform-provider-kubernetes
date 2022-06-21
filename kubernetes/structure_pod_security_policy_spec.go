@@ -7,6 +7,8 @@ import (
 
 	v1 "k8s.io/api/core/v1"
 	v1beta1 "k8s.io/api/policy/v1beta1"
+
+	providercorev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
 )
 
 func flattenPodSecurityPolicySpec(in v1beta1.PodSecurityPolicySpec) []interface{} {
@@ -17,7 +19,7 @@ func flattenPodSecurityPolicySpec(in v1beta1.PodSecurityPolicySpec) []interface{
 	}
 
 	if len(in.AllowedCapabilities) > 0 {
-		spec["allowed_capabilities"] = flattenCapability(in.AllowedCapabilities)
+		spec["allowed_capabilities"] = providercorev1.FlattenCapability(in.AllowedCapabilities)
 	}
 
 	if len(in.AllowedFlexVolumes) > 0 {
@@ -37,7 +39,7 @@ func flattenPodSecurityPolicySpec(in v1beta1.PodSecurityPolicySpec) []interface{
 	}
 
 	if len(in.DefaultAddCapabilities) > 0 {
-		spec["default_add_capabilities"] = flattenCapability(in.DefaultAddCapabilities)
+		spec["default_add_capabilities"] = providercorev1.FlattenCapability(in.DefaultAddCapabilities)
 	}
 
 	if in.DefaultAllowPrivilegeEscalation != nil {
@@ -61,7 +63,7 @@ func flattenPodSecurityPolicySpec(in v1beta1.PodSecurityPolicySpec) []interface{
 	spec["read_only_root_filesystem"] = in.ReadOnlyRootFilesystem
 
 	if len(in.RequiredDropCapabilities) > 0 {
-		spec["required_drop_capabilities"] = flattenCapability(in.RequiredDropCapabilities)
+		spec["required_drop_capabilities"] = providercorev1.FlattenCapability(in.RequiredDropCapabilities)
 	}
 
 	spec["run_as_user"] = flattenRunAsUser(in.RunAsUser)
@@ -181,7 +183,7 @@ func flattenSELinuxStrategy(in v1beta1.SELinuxStrategyOptions) []interface{} {
 	}
 
 	if in.SELinuxOptions != nil {
-		result["se_linux_options"] = flattenSeLinuxOptions(in.SELinuxOptions)
+		result["se_linux_options"] = providercorev1.FlattenSeLinuxOptions(in.SELinuxOptions)
 	}
 
 	return []interface{}{result}
@@ -222,7 +224,7 @@ func expandPodSecurityPolicySpec(in []interface{}) (v1beta1.PodSecurityPolicySpe
 	}
 
 	if v, ok := m["allowed_capabilities"].([]interface{}); ok && len(v) > 0 {
-		spec.AllowedCapabilities = expandCapabilitySlice(v)
+		spec.AllowedCapabilities = providercorev1.ExpandCapabilitySlice(v)
 	}
 
 	if v, ok := m["allowed_flex_volumes"].([]interface{}); ok && len(v) > 0 {
@@ -242,7 +244,7 @@ func expandPodSecurityPolicySpec(in []interface{}) (v1beta1.PodSecurityPolicySpe
 	}
 
 	if v, ok := m["default_add_capabilities"].([]interface{}); ok && len(v) > 0 {
-		spec.DefaultAddCapabilities = expandCapabilitySlice(v)
+		spec.DefaultAddCapabilities = providercorev1.ExpandCapabilitySlice(v)
 	}
 
 	if v, ok := m["default_allow_privilege_escalation"].(bool); ok {
@@ -282,7 +284,7 @@ func expandPodSecurityPolicySpec(in []interface{}) (v1beta1.PodSecurityPolicySpe
 	}
 
 	if v, ok := m["required_drop_capabilities"].([]interface{}); ok && len(v) > 0 {
-		spec.RequiredDropCapabilities = expandCapabilitySlice(v)
+		spec.RequiredDropCapabilities = providercorev1.ExpandCapabilitySlice(v)
 	}
 
 	if v, ok := m["run_as_user"].([]interface{}); ok && len(v) > 0 {

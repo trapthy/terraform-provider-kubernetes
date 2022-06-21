@@ -4,6 +4,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
+
+	providercorev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
 )
 
 func flattenDaemonSetSpec(in appsv1.DaemonSetSpec, d *schema.ResourceData, meta interface{}) ([]interface{}, error) {
@@ -20,7 +22,7 @@ func flattenDaemonSetSpec(in appsv1.DaemonSetSpec, d *schema.ResourceData, meta 
 		att["selector"] = flattenLabelSelector(in.Selector)
 	}
 
-	podSpec, err := flattenPodSpec(in.Template.Spec)
+	podSpec, err := providercorev1.FlattenPodSpec(in.Template.Spec)
 	if err != nil {
 		return nil, err
 	}

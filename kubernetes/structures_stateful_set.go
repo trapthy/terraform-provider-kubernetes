@@ -7,21 +7,25 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	appsv1 "k8s.io/api/apps/v1"
 	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
+
+	providercorev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
 )
 
 // Expanders
 
 func expandStatefulSetSpec(s []interface{}) (*v1.StatefulSetSpec, error) {
-	obj := &v1.StatefulSetSpec{}
+	obj := &appsv1.StatefulSetSpec{}
 	if len(s) == 0 || s[0] == nil {
 		return obj, nil
 	}
 	in := s[0].(map[string]interface{})
 
 	if v, ok := in["pod_management_policy"].(string); ok {
-		obj.PodManagementPolicy = v1.PodManagementPolicyType(v)
+		obj.PodManagementPolicy = appsv1.PodManagementPolicyType(v)
 	}
 
 	if v, ok := in["replicas"].(string); ok && v != "" {
@@ -64,7 +68,7 @@ func expandStatefulSetSpec(s []interface{}) (*v1.StatefulSetSpec, error) {
 			return obj, nil
 		}
 		for _, pvc := range v {
-			p, err := expandPersistentVolumeClaim(pvc.(map[string]interface{}))
+			p, err := providercorev1.ExpandPersistentVolumeClaim(pvc.(map[string]interface{}))
 			if err != nil {
 				return obj, err
 			}
@@ -73,8 +77,8 @@ func expandStatefulSetSpec(s []interface{}) (*v1.StatefulSetSpec, error) {
 	}
 	return obj, nil
 }
-func expandStatefulSetSpecUpdateStrategy(s []interface{}) (*v1.StatefulSetUpdateStrategy, error) {
-	ust := &v1.StatefulSetUpdateStrategy{}
+func expandStatefulSetSpecUpdateStrategy(s []interface{}) (*appsv1.StatefulSetUpdateStrategy, error) {
+	ust := &appsv1.StatefulSetUpdateStrategy{}
 	if len(s) == 0 {
 		return ust, nil
 	}
@@ -86,13 +90,13 @@ func expandStatefulSetSpecUpdateStrategy(s []interface{}) (*v1.StatefulSetUpdate
 	if !ok {
 		return ust, errors.New("failed to expand 'spec.update_strategy.type'")
 	}
-	ust.Type = v1.StatefulSetUpdateStrategyType(t)
+	ust.Type = appsv1.StatefulSetUpdateStrategyType(t)
 	ru, ok := us["rolling_update"].([]interface{})
 	if !ok {
 		return ust, errors.New("failed to unroll 'spec.update_strategy.rolling_update'")
 	}
 	if len(ru) > 0 {
-		u := v1.RollingUpdateStatefulSetStrategy{}
+		u := appsv1.RollingUpdateStatefulSetStrategy{}
 		r, ok := ru[0].(map[string]interface{})
 		if !ok {
 			return ust, errors.New("failed to expand 'spec.update_strategy.rolling_update'")
@@ -108,7 +112,7 @@ func expandStatefulSetSpecUpdateStrategy(s []interface{}) (*v1.StatefulSetUpdate
 	return ust, nil
 }
 
-func flattenStatefulSetSpec(spec v1.StatefulSetSpec, d *schema.ResourceData, meta interface{}) ([]interface{}, error) {
+func flattenStatefulSetSpec(spec appsv1.StatefulSetSpec, d *schema.ResourceData, meta interface{}) ([]interface{}, error) {
 	att := make(map[string]interface{})
 
 	if spec.PodManagementPolicy != "" {
@@ -151,7 +155,7 @@ func flattenPodTemplateSpec(t corev1.PodTemplateSpec, d *schema.ResourceData, me
 		metaPrefix = prefix[0]
 	}
 	template["metadata"] = flattenMetadata(t.ObjectMeta, d, meta, metaPrefix)
-	spec, err := flattenPodSpec(t.Spec)
+	spec, err := providercorev1.FlattenPodSpec(t.Spec)
 	if err != nil {
 		return []interface{}{template}, err
 	}
@@ -166,13 +170,13 @@ func flattenPersistentVolumeClaim(in []corev1.PersistentVolumeClaim, d *schema.R
 	for i, pvc := range in {
 		p := make(map[string]interface{})
 		p["metadata"] = flattenMetadata(pvc.ObjectMeta, d, meta, fmt.Sprintf("spec.0.volume_claim_template.%d.", i))
-		p["spec"] = flattenPersistentVolumeClaimSpec(pvc.Spec)
+		p["spec"] = providercorev1.FlattenPersistentVolumeClaimSpec(pvc.Spec)
 		pvcs = append(pvcs, p)
 	}
 	return pvcs
 }
 
-func flattenStatefulSetSpecUpdateStrategy(s v1.StatefulSetUpdateStrategy) []interface{} {
+func flattenStatefulSetSpecUpdateStrategy(s appsv1.StatefulSetUpdateStrategy) []interface{} {
 	att := make(map[string]interface{})
 
 	att["type"] = s.Type

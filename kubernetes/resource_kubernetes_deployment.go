@@ -12,6 +12,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
+	providercorev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
+
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -195,7 +197,7 @@ func resourceKubernetesDeploymentSchemaV1() map[string]*schema.Schema {
 									Required:    true,
 									MaxItems:    1,
 									Elem: &schema.Resource{
-										Schema: podSpecFields(true, false),
+										Schema: providercorev1.PodSpecFields(true, false),
 									},
 								},
 							},

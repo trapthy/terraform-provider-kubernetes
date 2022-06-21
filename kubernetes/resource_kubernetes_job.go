@@ -229,7 +229,10 @@ func resourceKubernetesJobDelete(ctx context.Context, d *schema.ResourceData, me
 	}
 
 	log.Printf("[INFO] Deleting job: %#v", name)
-	err = conn.BatchV1().Jobs(namespace).Delete(ctx, name, deleteOptions)
+	deletePolicy := metav1.DeletePropagationForeground
+	err = conn.BatchV1().Jobs(namespace).Delete(ctx, name, metav1.DeleteOptions{
+		PropagationPolicy: &deletePolicy,
+	})
 	if err != nil {
 		return diag.Errorf("Failed to delete Job! API error: %s", err)
 	}

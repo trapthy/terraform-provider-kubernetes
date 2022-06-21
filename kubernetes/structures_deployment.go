@@ -4,6 +4,7 @@ import (
 	"strconv"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	providercorev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -31,7 +32,7 @@ func flattenDeploymentSpec(in appsv1.DeploymentSpec, d *schema.ResourceData, met
 
 	att["strategy"] = flattenDeploymentStrategy(in.Strategy)
 
-	podSpec, err := flattenPodSpec(in.Template.Spec)
+	podSpec, err := providercorev1.FlattenPodSpec(in.Template.Spec)
 	if err != nil {
 		return nil, err
 	}
@@ -113,7 +114,7 @@ func expandPodTemplate(l []interface{}) (*corev1.PodTemplateSpec, error) {
 	obj.ObjectMeta = expandMetadata(in["metadata"].([]interface{}))
 
 	if v, ok := in["spec"].([]interface{}); ok && len(v) > 0 {
-		podSpec, err := expandPodSpec(in["spec"].([]interface{}))
+		podSpec, err := providercorev1.ExpandPodSpec(in["spec"].([]interface{}))
 		if err != nil {
 			return obj, err
 		}
