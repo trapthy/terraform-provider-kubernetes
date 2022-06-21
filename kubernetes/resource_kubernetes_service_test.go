@@ -219,8 +219,8 @@ func TestAccKubernetesService_loadBalancer_internal_traffic_policy(t *testing.T)
 		PreCheck: func() {
 			testAccPreCheck(t)
 			skipIfNoLoadBalancersAvailable(t)
-			// internalTrafficPolicy is availabe in version 1.22+
-			skipIfClusterVersionLessThan(t, "1.21.0")
+			// internalTrafficPolicy is only availabe in version 1.22+
+			skipIfClusterVersionLessThan(t, "1.22.0")
 		},
 		IDRefreshName:     resourceName,
 		ProviderFactories: testAccProviderFactories,

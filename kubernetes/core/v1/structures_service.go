@@ -74,11 +74,11 @@ func flattenServiceSpec(in v1.ServiceSpec) []interface{} {
 		if in.Type == v1.ServiceTypeLoadBalancer {
 			// spec.allocateLoadBalancerNodePorts may only be used when `type` is 'LoadBalancer'
 			if in.AllocateLoadBalancerNodePorts != nil {
-				att["allocate_load_balancer_node_ports"] = in.AllocateLoadBalancerNodePorts
+				att["allocate_load_balancer_node_ports"] = *in.AllocateLoadBalancerNodePorts
 			}
 			// spec.loadBalancerClass may only be used when `type` is 'LoadBalancer'
 			if in.LoadBalancerClass != nil {
-				att["load_balancer_class"] = in.LoadBalancerClass
+				att["load_balancer_class"] = *in.LoadBalancerClass
 			}
 		}
 	}
@@ -86,7 +86,7 @@ func flattenServiceSpec(in v1.ServiceSpec) []interface{} {
 		att["external_ips"] = structures.NewStringSet(schema.HashString, in.ExternalIPs)
 	}
 	if in.InternalTrafficPolicy != nil {
-		att["internal_traffic_policy"] = in.InternalTrafficPolicy
+		att["internal_traffic_policy"] = *in.InternalTrafficPolicy
 	}
 	if len(in.IPFamilies) > 0 {
 		att["ip_families"] = flattenIPFamilies(in.IPFamilies)
