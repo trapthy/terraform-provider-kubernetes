@@ -11,6 +11,7 @@ require (
 	github.com/hashicorp/hcl/v2 v2.11.1
 	github.com/hashicorp/terraform-exec v0.16.1
 	github.com/hashicorp/terraform-json v0.14.0
+	github.com/hashicorp/terraform-plugin-docs v0.10.1
 	github.com/hashicorp/terraform-plugin-go v0.8.0
 	github.com/hashicorp/terraform-plugin-log v0.3.0
 	github.com/hashicorp/terraform-plugin-mux v0.6.0
@@ -35,7 +36,6 @@ require (
 	github.com/Masterminds/sprig/v3 v3.2.2 // indirect
 	github.com/armon/go-radix v1.0.0 // indirect
 	github.com/bgentry/speakeasy v0.1.0 // indirect
-	github.com/hashicorp/terraform-plugin-docs v0.10.1 // indirect
 	github.com/huandu/xstrings v1.3.2 // indirect
 	github.com/mitchellh/cli v1.1.4 // indirect
 	github.com/posener/complete v1.2.3 // indirect
