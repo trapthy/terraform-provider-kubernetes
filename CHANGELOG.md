@@ -1,3 +1,7 @@
+## 2.12.0
+
+* Add tfplugindocs for autogenerating documentation
+
 ## 2.11.0 (April 27, 2022)
 
 NEW:
