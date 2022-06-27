@@ -5,6 +5,8 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/validators"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	api "k8s.io/api/policy/v1beta1"
@@ -32,7 +34,7 @@ func resourceKubernetesPodDisruptionBudget() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"metadata": namespacedMetadataSchema("pod disruption budget", true),
+			"metadata": providermetav1.NamespacedMetadataSchema("pod disruption budget", true),
 			// Updates to spec not allowed until Kubernetes dependencies are updated to
 			// 1.13; have to delete and recreate until then
 			// https://github.com/kubernetes/kubernetes/issues/45398
@@ -49,14 +51,14 @@ func resourceKubernetesPodDisruptionBudget() *schema.Resource {
 							Description:  podDisruptionBudgetSpecMaxUnavailableDoc,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: validateTypeStringNullableIntOrPercent,
+							ValidateFunc: validators.ValidateTypeStringNullableIntOrPercent,
 						},
 						"min_available": {
 							Type:         schema.TypeString,
 							Description:  podDisruptionBudgetSpecMinAvailableDoc,
 							Optional:     true,
 							ForceNew:     true,
-							ValidateFunc: validateTypeStringNullableIntOrPercent,
+							ValidateFunc: validators.ValidateTypeStringNullableIntOrPercent,
 						},
 						"selector": {
 							Type:        schema.TypeList,
@@ -81,12 +83,12 @@ func resourceKubernetesPodDisruptionBudgetUpdate(ctx context.Context, d *schema.
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	ops := patchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 	data, err := ops.MarshalJSON()
 	if err != nil {
 		return diag.Errorf("Failed to marshal update operations: %s", err)
@@ -99,7 +101,7 @@ func resourceKubernetesPodDisruptionBudgetUpdate(ctx context.Context, d *schema.
 	}
 
 	log.Printf("[INFO] Submitted updated pod disruption budget: %#v", out)
-	d.SetId(buildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	return resourceKubernetesPodDisruptionBudgetRead(ctx, d, meta)
 }
@@ -110,7 +112,7 @@ func resourceKubernetesPodDisruptionBudgetCreate(ctx context.Context, d *schema.
 		return diag.FromErr(err)
 	}
 
-	metadata := expandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	spec, err := expandPodDisruptionBudgetSpec(d.Get("spec").([]interface{}))
 	if err != nil {
 		return diag.FromErr(err)
@@ -127,7 +129,7 @@ func resourceKubernetesPodDisruptionBudgetCreate(ctx context.Context, d *schema.
 	}
 
 	log.Printf("[INFO] Submitted new pod disruption budget: %#v", out)
-	d.SetId(buildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	return resourceKubernetesPodDisruptionBudgetRead(ctx, d, meta)
 }
@@ -146,7 +148,7 @@ func resourceKubernetesPodDisruptionBudgetRead(ctx context.Context, d *schema.Re
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -159,7 +161,7 @@ func resourceKubernetesPodDisruptionBudgetRead(ctx context.Context, d *schema.Re
 	}
 
 	log.Printf("[INFO] Received pod disruption budget: %#v", pdb)
-	err = d.Set("metadata", flattenMetadata(pdb.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(pdb.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -178,7 +180,7 @@ func resourceKubernetesPodDisruptionBudgetDelete(ctx context.Context, d *schema.
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -202,7 +204,7 @@ func resourceKubernetesPodDisruptionBudgetExists(ctx context.Context, d *schema.
 		return false, err
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return false, err
 	}

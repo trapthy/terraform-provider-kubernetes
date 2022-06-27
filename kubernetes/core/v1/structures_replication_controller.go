@@ -3,6 +3,7 @@ package v1
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 	corev1 "k8s.io/api/core/v1"
 )
@@ -26,7 +27,7 @@ func flattenReplicationControllerSpec(in corev1.ReplicationControllerSpec, d *sc
 		}
 		template := make(map[string]interface{})
 		template["spec"] = podSpec
-		template["metadata"] = structures.FlattenMetadata(in.Template.ObjectMeta, d, meta)
+		template["metadata"] = providermetav1.FlattenMetadata(in.Template.ObjectMeta, d, meta)
 		att["template"] = []interface{}{template}
 	}
 
@@ -57,7 +58,7 @@ func expandReplicationControllerTemplate(rct []interface{}) (*corev1.PodTemplate
 	obj := &corev1.PodTemplateSpec{}
 	in := rct[0].(map[string]interface{})
 	metadata := in["metadata"].([]interface{})
-	obj.ObjectMeta = structures.ExpandMetadata(metadata)
+	obj.ObjectMeta = providermetav1.ExpandMetadata(metadata)
 
 	podSpec, err := ExpandPodSpec(in["spec"].([]interface{}))
 	if err != nil {

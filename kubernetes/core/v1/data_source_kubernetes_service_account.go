@@ -5,8 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
-	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -15,7 +15,7 @@ func DataSourceKubernetesServiceAccount() *schema.Resource {
 		ReadContext: dataSourceKubernetesServiceAccountRead,
 
 		Schema: map[string]*schema.Schema{
-			"metadata": NamespacedMetadataSchema("service account", false),
+			"metadata": providermetav1.NamespacedMetadataSchema("service account", false),
 			"image_pull_secret": {
 				Type:        schema.TypeList,
 				Description: "A list of references to secrets in the same namespace to use for pulling any images in pods that reference this Service Account. More info: http://kubernetes.io/docs/user-guide/secrets#manually-specifying-an-imagepullsecret",
@@ -63,7 +63,7 @@ func dataSourceKubernetesServiceAccountRead(ctx context.Context, d *schema.Resou
 		return diag.FromErr(err)
 	}
 
-	metadata := structures.ExpandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	sa, err := conn.CoreV1().ServiceAccounts(metadata.Namespace).Get(ctx, metadata.Name, metav1.GetOptions{})
 	if err != nil {
 		return diag.Errorf("Unable to fetch service account from Kubernetes: %s", err)
@@ -76,7 +76,7 @@ func dataSourceKubernetesServiceAccountRead(ctx context.Context, d *schema.Resou
 		return diag.Errorf("Unable to set default_secret_name: %s", err)
 	}
 
-	d.SetId(structures.BuildId(sa.ObjectMeta))
+	d.SetId(providermetav1.BuildId(sa.ObjectMeta))
 
 	diagMsg = append(diagMsg, resourceKubernetesServiceAccountRead(ctx, d, meta)...)
 

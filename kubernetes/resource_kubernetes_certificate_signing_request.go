@@ -3,15 +3,19 @@ package kubernetes
 import (
 	"context"
 	"fmt"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
-	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
-	"k8s.io/api/certificates/v1beta1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	"k8s.io/client-go/util/retry"
 	"log"
 	"reflect"
 	"time"
+
+	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
+	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+
+	"k8s.io/api/certificates/v1beta1"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/client-go/util/retry"
 )
 
 func resourceKubernetesCertificateSigningRequest() *schema.Resource {
@@ -42,7 +46,7 @@ func resourceKubernetesCertificateSigningRequest() *schema.Resource {
 				Description: apiDocStatus["certificate"],
 				Computed:    true,
 			},
-			"metadata": metadataSchemaForceNew(metadataSchema("certificate signing request", true)),
+			"metadata": providermetav1.MetadataSchemaForceNew(providermetav1.MetadataSchema("certificate signing request", true)),
 			"spec": {
 				ForceNew:    true,
 				Type:        schema.TypeList,
@@ -89,7 +93,7 @@ func resourceKubernetesCertificateSigningRequestCreate(ctx context.Context, d *s
 		return diag.FromErr(err)
 	}
 
-	metadata := expandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	spec, err := expandCertificateSigningRequestSpec(d.Get("spec").([]interface{}))
 	if err != nil {
 		return diag.FromErr(err)

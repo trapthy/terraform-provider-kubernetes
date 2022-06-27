@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	api "k8s.io/api/rbac/v1"
@@ -63,7 +64,7 @@ func resourceKubernetesClusterRoleCreate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 
-	metadata := expandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	cRole := api.ClusterRole{
 		ObjectMeta: metadata,
 		Rules:      expandClusterRoleRules(d.Get("rule").([]interface{})),
@@ -91,7 +92,7 @@ func resourceKubernetesClusterRoleUpdate(ctx context.Context, d *schema.Resource
 	}
 
 	name := d.Id()
-	ops := patchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 	if d.HasChange("rule") {
 		diffOps := patchRbacRule(d)
 		ops = append(ops, diffOps...)
@@ -142,7 +143,7 @@ func resourceKubernetesClusterRoleRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 	log.Printf("[INFO] Received cluster role: %#v", cRole)
-	err = d.Set("metadata", flattenMetadata(cRole.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(cRole.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -5,10 +5,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-
-	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 )
 
 func DataSourceKubernetesSecret() *schema.Resource {
@@ -16,7 +15,7 @@ func DataSourceKubernetesSecret() *schema.Resource {
 		ReadContext: dataSourceKubernetesSecretRead,
 
 		Schema: map[string]*schema.Schema{
-			"metadata": NamespacedMetadataSchema("secret", false),
+			"metadata": providermetav1.NamespacedMetadataSchema("secret", false),
 			"data": {
 				Type:        schema.TypeMap,
 				Description: "A map of the secret data.",
@@ -48,7 +47,7 @@ func dataSourceKubernetesSecretRead(ctx context.Context, d *schema.ResourceData,
 		Namespace: d.Get("metadata.0.namespace").(string),
 		Name:      d.Get("metadata.0.name").(string),
 	}
-	d.SetId(structures.BuildId(om))
+	d.SetId(providermetav1.BuildId(om))
 
 	return resourceKubernetesSecretRead(ctx, d, meta)
 }

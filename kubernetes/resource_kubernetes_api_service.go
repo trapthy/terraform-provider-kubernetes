@@ -5,6 +5,9 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/validators"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -25,7 +28,7 @@ func resourceKubernetesAPIService() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"metadata": metadataSchema("api_service", true),
+			"metadata": providermetav1.MetadataSchema("api_service", true),
 			"spec": {
 				Type:        schema.TypeList,
 				Description: "Spec contains information for locating and communicating with a server. https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#spec-and-status",
@@ -78,7 +81,7 @@ func resourceKubernetesAPIService() *schema.Resource {
 										Description:  "If specified, the port on the service that is hosting the service. Defaults to 443 for backward compatibility. Should be a valid port number (1-65535, inclusive).",
 										Optional:     true,
 										Default:      443,
-										ValidateFunc: validatePortNum,
+										ValidateFunc: validators.ValidatePortNum,
 									},
 								},
 							},
@@ -107,7 +110,7 @@ func resourceKubernetesAPIServiceCreate(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 
-	metadata := expandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	svc := v1.APIService{
 		ObjectMeta: metadata,
 		Spec:       expandAPIServiceSpec(d.Get("spec").([]interface{})),
@@ -146,7 +149,7 @@ func resourceKubernetesAPIServiceRead(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 	log.Printf("[INFO] Received API service: %#v", svc)
-	err = d.Set("metadata", flattenMetadata(svc.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(svc.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -168,9 +171,9 @@ func resourceKubernetesAPIServiceUpdate(ctx context.Context, d *schema.ResourceD
 	}
 
 	name := d.Id()
-	ops := patchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 	if d.HasChange("spec") {
-		ops = append(ops, &ReplaceOperation{
+		ops = append(ops, &structures.ReplaceOperation{
 			Path:  "/spec",
 			Value: expandAPIServiceSpec(d.Get("spec").([]interface{})),
 		})

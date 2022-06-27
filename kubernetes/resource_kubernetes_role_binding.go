@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	api "k8s.io/api/rbac/v1"
@@ -54,7 +55,7 @@ func resourceKubernetesRoleBindingCreate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 
-	metadata := expandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	binding := &api.RoleBinding{
 		ObjectMeta: metadata,
 		RoleRef:    expandRBACRoleRef(d.Get("role_ref").([]interface{})),
@@ -67,7 +68,7 @@ func resourceKubernetesRoleBindingCreate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 	log.Printf("[INFO] Submitted new RoleBinding: %#v", out)
-	d.SetId(buildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	return resourceKubernetesRoleBindingRead(ctx, d, meta)
 }
@@ -86,7 +87,7 @@ func resourceKubernetesRoleBindingRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -99,7 +100,7 @@ func resourceKubernetesRoleBindingRead(ctx context.Context, d *schema.ResourceDa
 	}
 
 	log.Printf("[INFO] Received RoleBinding: %#v", binding)
-	err = d.Set("metadata", flattenMetadata(binding.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(binding.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -127,12 +128,12 @@ func resourceKubernetesRoleBindingUpdate(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	ops := patchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 	if d.HasChange("subject") {
 		diffOps := patchRbacSubject(d)
 		ops = append(ops, diffOps...)
@@ -147,7 +148,7 @@ func resourceKubernetesRoleBindingUpdate(ctx context.Context, d *schema.Resource
 		return diag.Errorf("Failed to update RoleBinding: %s", err)
 	}
 	log.Printf("[INFO] Submitted updated RoleBinding: %#v", out)
-	d.SetId(buildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	return resourceKubernetesRoleBindingRead(ctx, d, meta)
 }
@@ -158,7 +159,7 @@ func resourceKubernetesRoleBindingDelete(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -179,7 +180,7 @@ func resourceKubernetesRoleBindingExists(ctx context.Context, d *schema.Resource
 		return false, err
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return false, err
 	}

@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 
@@ -21,7 +22,7 @@ import (
 func ResourceKubernetesDefaultServiceAccount() *schema.Resource {
 	serviceAccountResource := ResourceKubernetesServiceAccount()
 
-	metaSchema := NamespacedMetadataSchema("service account", false)
+	metaSchema := providermetav1.NamespacedMetadataSchema("service account", false)
 
 	nameField := metaSchema.Elem.(*schema.Resource).Schema["name"]
 	nameField.Computed = false
@@ -41,7 +42,7 @@ func resourceKubernetesDefaultServiceAccountCreate(ctx context.Context, d *schem
 		return diag.FromErr(err)
 	}
 
-	metadata := structures.ExpandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	svcAcc := api.ServiceAccount{ObjectMeta: metadata}
 
 	log.Printf("[INFO] Checking for default service account existence: %s", metadata.Namespace)
@@ -70,19 +71,19 @@ func resourceKubernetesDefaultServiceAccountCreate(ctx context.Context, d *schem
 	}
 	d.Set("default_secret_name", secret.Name)
 
-	ops := structures.PatchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 	if d.HasChange("image_pull_secret") {
 		v := d.Get("image_pull_secret").(*schema.Set).List()
 		ops = append(ops, &structures.ReplaceOperation{
 			Path:  "/imagePullSecrets",
-			Value: structures.ExpandLocalObjectReferenceArray(v),
+			Value: expandLocalObjectReferenceArray(v),
 		})
 	}
 	if d.HasChange("secret") {
 		v := d.Get("secret").(*schema.Set).List()
 		ops = append(ops, &structures.ReplaceOperation{
 			Path:  "/secrets",
-			Value: structures.ExpandServiceAccountSecrets(v, secret.Name),
+			Value: expandServiceAccountSecrets(v, secret.Name),
 		})
 	}
 
@@ -103,7 +104,7 @@ func resourceKubernetesDefaultServiceAccountCreate(ctx context.Context, d *schem
 	}
 	log.Printf("[INFO] Submitted updated default service account: %#v", out)
 
-	d.SetId(structures.BuildId(metadata))
+	d.SetId(providermetav1.BuildId(metadata))
 
 	return resourceKubernetesServiceAccountRead(ctx, d, meta)
 }

@@ -19,6 +19,8 @@ import (
 	"k8s.io/client-go/kubernetes"
 
 	providercorev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 )
 
 func resourceKubernetesDaemonSet() *schema.Resource {
@@ -49,7 +51,7 @@ func resourceKubernetesDaemonSet() *schema.Resource {
 
 func resourceKubernetesDaemonSetSchemaV1() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"metadata": namespacedMetadataSchema("daemonset", true),
+		"metadata": providermetav1.NamespacedMetadataSchema("daemonset", true),
 		"spec": {
 			Type:        schema.TypeList,
 			Description: "Spec defines the specification of the desired behavior of the daemonset. More info: https://v1-9.docs.kubernetes.io/docs/reference/generated/kubernetes-api/v1.9/#daemonset-v1-apps",
@@ -142,7 +144,7 @@ func resourceKubernetesDaemonSetCreate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	metadata := expandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	spec, err := expandDaemonSetSpec(d.Get("spec").([]interface{}))
 	if err != nil {
 		return diag.FromErr(err)
@@ -168,7 +170,7 @@ func resourceKubernetesDaemonSetCreate(ctx context.Context, d *schema.ResourceDa
 		}
 	}
 
-	d.SetId(buildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	log.Printf("[INFO] Submitted new daemonset: %#v", out)
 
@@ -181,12 +183,12 @@ func resourceKubernetesDaemonSetUpdate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	ops := patchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 
 	if d.HasChange("spec") {
 		spec, err := expandDaemonSetSpec(d.Get("spec").([]interface{}))
@@ -194,7 +196,7 @@ func resourceKubernetesDaemonSetUpdate(ctx context.Context, d *schema.ResourceDa
 			return diag.FromErr(err)
 		}
 
-		ops = append(ops, &ReplaceOperation{
+		ops = append(ops, &structures.ReplaceOperation{
 			Path:  "/spec",
 			Value: spec,
 		})
@@ -236,7 +238,7 @@ func resourceKubernetesDaemonSetRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -253,7 +255,7 @@ func resourceKubernetesDaemonSetRead(ctx context.Context, d *schema.ResourceData
 	}
 	log.Printf("[INFO] Received daemonset: %#v", daemonset)
 
-	err = d.Set("metadata", flattenMetadata(daemonset.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(daemonset.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -277,7 +279,7 @@ func resourceKubernetesDaemonSetDelete(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -300,7 +302,7 @@ func resourceKubernetesDaemonSetExists(ctx context.Context, d *schema.ResourceDa
 		return false, err
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return false, err
 	}

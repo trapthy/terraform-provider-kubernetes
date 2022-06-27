@@ -9,6 +9,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 
 	batchv1 "k8s.io/api/batch/v1"
 	corev1 "k8s.io/api/core/v1"
@@ -71,7 +72,7 @@ func resourceKubernetesJobCreate(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	metadata := expandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	spec, err := expandJobSpec(d.Get("spec").([]interface{}))
 	if err != nil {
 		return diag.FromErr(err)
@@ -90,9 +91,9 @@ func resourceKubernetesJobCreate(ctx context.Context, d *schema.ResourceData, me
 	}
 	log.Printf("[INFO] Submitted new job: %#v", out)
 
-	d.SetId(buildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -114,12 +115,12 @@ func resourceKubernetesJobUpdate(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	ops := patchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 
 	if d.HasChange("spec") {
 		specOps, err := patchJobSpec("/spec", "spec.0.", d)
@@ -142,7 +143,7 @@ func resourceKubernetesJobUpdate(ctx context.Context, d *schema.ResourceData, me
 	}
 	log.Printf("[INFO] Submitted updated job: %#v", out)
 
-	d.SetId(buildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	if d.Get("wait_for_completion").(bool) {
 		err = resource.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate),
@@ -168,7 +169,7 @@ func resourceKubernetesJobRead(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -200,7 +201,7 @@ func resourceKubernetesJobRead(ctx context.Context, d *schema.ResourceData, meta
 		}
 	}
 
-	err = d.Set("metadata", flattenMetadata(job.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(job.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -223,7 +224,7 @@ func resourceKubernetesJobDelete(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -265,7 +266,7 @@ func resourceKubernetesJobExists(ctx context.Context, d *schema.ResourceData, me
 		return false, err
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return false, err
 	}

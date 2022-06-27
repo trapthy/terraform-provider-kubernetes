@@ -10,8 +10,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
-	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 	suppressors "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/suppressors"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/validators"
 
@@ -79,7 +79,7 @@ func ResourceKubernetesPersistentVolume() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"metadata": MetadataSchema("persistent volume", false),
+			"metadata": providermetav1.MetadataSchema("persistent volume", false),
 			"spec": {
 				Type:        schema.TypeList,
 				Description: "Spec of the persistent volume owned by the cluster",
@@ -213,7 +213,7 @@ func resourceKubernetesPersistentVolumeCreate(ctx context.Context, d *schema.Res
 		return diag.FromErr(err)
 	}
 
-	metadata := structures.ExpandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	spec, err := expandPersistentVolumeSpec(d.Get("spec").([]interface{}))
 	if err != nil {
 		return diag.FromErr(err)
@@ -279,7 +279,7 @@ func resourceKubernetesPersistentVolumeRead(ctx context.Context, d *schema.Resou
 		return diag.FromErr(err)
 	}
 	log.Printf("[INFO] Received persistent volume: %#v", volume)
-	err = d.Set("metadata", structures.FlattenMetadata(volume.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(volume.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -297,7 +297,7 @@ func resourceKubernetesPersistentVolumeUpdate(ctx context.Context, d *schema.Res
 		return diag.FromErr(err)
 	}
 
-	ops := structures.PatchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 	if d.HasChange("spec") {
 		specOps, err := patchPersistentVolumeSpec("/spec", "spec", d)
 		if err != nil {

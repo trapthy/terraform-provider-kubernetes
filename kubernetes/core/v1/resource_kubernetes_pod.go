@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 
@@ -45,7 +46,7 @@ func ResourceKubernetesPod() *schema.Resource {
 
 func resourceKubernetesPodSchemaV1() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"metadata": NamespacedMetadataSchema("pod", true),
+		"metadata": providermetav1.NamespacedMetadataSchema("pod", true),
 		"spec": {
 			Type:        schema.TypeList,
 			Description: "Specification of the desired behavior of the pod.",
@@ -64,7 +65,7 @@ func resourceKubernetesPodCreate(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	metadata := structures.ExpandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	spec, err := ExpandPodSpec(d.Get("spec").([]interface{}))
 	if err != nil {
 		return diag.FromErr(err)
@@ -83,7 +84,7 @@ func resourceKubernetesPodCreate(ctx context.Context, d *schema.ResourceData, me
 	}
 	log.Printf("[INFO] Submitted new pod: %#v", out)
 
-	d.SetId(structures.BuildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	stateConf := &resource.StateChangeConf{
 		Target:  []string{"Running"},
@@ -120,12 +121,12 @@ func resourceKubernetesPodUpdate(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	ops := structures.PatchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 	if d.HasChange("spec") {
 		specOps, err := patchPodSpec("/spec", "spec.0.", d)
 		if err != nil {
@@ -146,7 +147,7 @@ func resourceKubernetesPodUpdate(ctx context.Context, d *schema.ResourceData, me
 	}
 	log.Printf("[INFO] Submitted updated pod: %#v", out)
 
-	d.SetId(structures.BuildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 	return resourceKubernetesPodRead(ctx, d, meta)
 }
 
@@ -164,7 +165,7 @@ func resourceKubernetesPodRead(ctx context.Context, d *schema.ResourceData, meta
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -177,7 +178,7 @@ func resourceKubernetesPodRead(ctx context.Context, d *schema.ResourceData, meta
 	}
 	log.Printf("[INFO] Received pod: %#v", pod)
 
-	err = d.Set("metadata", structures.FlattenMetadata(pod.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(pod.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -201,7 +202,7 @@ func resourceKubernetesPodDelete(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -241,7 +242,7 @@ func resourceKubernetesPodExists(ctx context.Context, d *schema.ResourceData, me
 		return false, err
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return false, err
 	}

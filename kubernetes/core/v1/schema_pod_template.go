@@ -4,11 +4,12 @@ import (
 	"fmt"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 )
 
 func PodTemplateFields(owner string) map[string]*schema.Schema {
 	s := map[string]*schema.Schema{
-		"metadata": MetadataSchema(owner, true),
+		"metadata": providermetav1.MetadataSchema(owner, true),
 		"spec": {
 			Type:        schema.TypeList,
 			Description: fmt.Sprintf("Spec of the pods owned by the %s", owner),

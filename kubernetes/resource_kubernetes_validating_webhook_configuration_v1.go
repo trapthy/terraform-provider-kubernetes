@@ -5,6 +5,8 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
@@ -30,7 +32,7 @@ func resourceKubernetesValidatingWebhookConfigurationV1() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"metadata": metadataSchema("validating webhook configuration", true),
+			"metadata": providermetav1.MetadataSchema("validating webhook configuration", true),
 			"webhook": {
 				Type:        schema.TypeList,
 				Description: apiDoc["webhooks"],
@@ -136,7 +138,7 @@ func resourceKubernetesValidatingWebhookConfigurationV1Create(ctx context.Contex
 	}
 
 	cfg := admissionregistrationv1.ValidatingWebhookConfiguration{
-		ObjectMeta: expandMetadata(d.Get("metadata").([]interface{})),
+		ObjectMeta: providermetav1.ExpandMetadata(d.Get("metadata").([]interface{})),
 		Webhooks:   expandValidatingWebhooks(d.Get("webhook").([]interface{})),
 	}
 
@@ -203,7 +205,7 @@ func resourceKubernetesValidatingWebhookConfigurationV1Read(ctx context.Context,
 		return diag.FromErr(err)
 	}
 
-	err = d.Set("metadata", flattenMetadata(cfg.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(cfg.ObjectMeta, d, meta))
 	if err != nil {
 		return nil
 	}
@@ -224,10 +226,10 @@ func resourceKubernetesValidatingWebhookConfigurationV1Update(ctx context.Contex
 		return diag.FromErr(err)
 	}
 
-	ops := patchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 
 	if d.HasChange("webhook") {
-		op := &ReplaceOperation{
+		op := &structures.ReplaceOperation{
 			Path: "/webhooks",
 		}
 

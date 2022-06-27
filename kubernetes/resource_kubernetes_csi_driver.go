@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -26,7 +27,7 @@ func resourceKubernetesCSIDriver() *schema.Resource {
 			StateContext: schema.ImportStatePassthroughContext,
 		},
 		Schema: map[string]*schema.Schema{
-			"metadata": metadataSchema("csi driver", true),
+			"metadata": providermetav1.MetadataSchema("csi driver", true),
 			"spec": {
 				Type:        schema.TypeList,
 				Description: fmt.Sprintf("Spec of the CSIDriver"),
@@ -71,7 +72,7 @@ func resourceKubernetesCSIDriverCreate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	CSIDriver := storage.CSIDriver{
-		ObjectMeta: expandMetadata(d.Get("metadata").([]interface{})),
+		ObjectMeta: providermetav1.ExpandMetadata(d.Get("metadata").([]interface{})),
 		Spec:       expandCSIDriverSpec(d.Get("spec").([]interface{})),
 	}
 
@@ -108,7 +109,7 @@ func resourceKubernetesCSIDriverRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	log.Printf("[INFO] Received CSIDriver: %#v", CSIDriver)
-	err = d.Set("metadata", flattenMetadata(CSIDriver.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(CSIDriver.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -133,7 +134,7 @@ func resourceKubernetesCSIDriverUpdate(ctx context.Context, d *schema.ResourceDa
 	}
 
 	name := d.Id()
-	ops := patchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 	if d.HasChange("spec") {
 		diffOps, err := patchCSIDriverSpec("spec.0.", "/spec", d)
 		if err != nil {

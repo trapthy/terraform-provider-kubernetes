@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 
@@ -49,7 +50,7 @@ func ResourceKubernetesSecret() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"metadata": NamespacedMetadataSchema("secret", true),
+			"metadata": providermetav1.NamespacedMetadataSchema("secret", true),
 			"data": {
 				Type:        schema.TypeMap,
 				Description: "A map of the secret data.",
@@ -85,7 +86,7 @@ func resourceKubernetesSecretCreate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	metadata := structures.ExpandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	secret := api.Secret{
 		ObjectMeta: metadata,
 	}
@@ -122,7 +123,7 @@ func resourceKubernetesSecretCreate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	log.Printf("[INFO] Submitting new secret: %#v", out)
-	d.SetId(structures.BuildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	return resourceKubernetesSecretRead(ctx, d, meta)
 }
@@ -141,7 +142,7 @@ func resourceKubernetesSecretRead(ctx context.Context, d *schema.ResourceData, m
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -153,7 +154,7 @@ func resourceKubernetesSecretRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	log.Printf("[INFO] Received secret: %#v", secret.ObjectMeta)
-	err = d.Set("metadata", structures.FlattenMetadata(secret.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(secret.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -184,12 +185,12 @@ func resourceKubernetesSecretUpdate(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	ops := structures.PatchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 
 	newData := map[string]interface{}{}
 	updateData := false
@@ -243,7 +244,7 @@ func resourceKubernetesSecretUpdate(ctx context.Context, d *schema.ResourceData,
 	}
 
 	log.Printf("[INFO] Submitting updated secret: %#v", out.ObjectMeta)
-	d.SetId(structures.BuildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	return resourceKubernetesSecretRead(ctx, d, meta)
 }
@@ -254,7 +255,7 @@ func resourceKubernetesSecretDelete(ctx context.Context, d *schema.ResourceData,
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -278,7 +279,7 @@ func resourceKubernetesSecretExists(ctx context.Context, d *schema.ResourceData,
 		return false, err
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return false, err
 	}

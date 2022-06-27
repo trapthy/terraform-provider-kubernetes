@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 
@@ -46,7 +47,7 @@ func ResourceKubernetesService() *schema.Resource {
 
 func resourceKubernetesServiceSchemaV1() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"metadata": NamespacedMetadataSchema("service", true),
+		"metadata": providermetav1.NamespacedMetadataSchema("service", true),
 		"spec": {
 			Type:        schema.TypeList,
 			Description: "Spec defines the behavior of a service. https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#spec-and-status",
@@ -336,7 +337,7 @@ func resourceKubernetesServiceCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	metadata := structures.ExpandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	svc := api.Service{
 		ObjectMeta: metadata,
 		Spec:       expandServiceSpec(d.Get("spec").([]interface{})),
@@ -347,7 +348,7 @@ func resourceKubernetesServiceCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	log.Printf("[INFO] Submitted new service: %#v", out)
-	d.SetId(structures.BuildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	if out.Spec.Type == api.ServiceTypeLoadBalancer && d.Get("wait_for_load_balancer").(bool) {
 		log.Printf("[DEBUG] Waiting for load balancer to assign IP/hostname")
@@ -395,7 +396,7 @@ func resourceKubernetesServiceRead(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -407,7 +408,7 @@ func resourceKubernetesServiceRead(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 	log.Printf("[INFO] Received service: %#v", svc)
-	err = d.Set("metadata", structures.FlattenMetadata(svc.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(svc.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -437,12 +438,12 @@ func resourceKubernetesServiceUpdate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	ops := structures.PatchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 	if d.HasChange("spec") {
 		serverVersion, err := conn.ServerVersion()
 		if err != nil {
@@ -464,7 +465,7 @@ func resourceKubernetesServiceUpdate(ctx context.Context, d *schema.ResourceData
 		return diag.Errorf("Failed to update service: %s", err)
 	}
 	log.Printf("[INFO] Submitted updated service: %#v", out)
-	d.SetId(structures.BuildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	return resourceKubernetesServiceRead(ctx, d, meta)
 }
@@ -475,7 +476,7 @@ func resourceKubernetesServiceDelete(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -514,7 +515,7 @@ func resourceKubernetesServiceExists(ctx context.Context, d *schema.ResourceData
 		return false, err
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return false, err
 	}

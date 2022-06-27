@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 
@@ -36,7 +37,7 @@ func ResourceKubernetesServiceAccount() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"metadata": NamespacedMetadataSchema("service account", true),
+			"metadata": providermetav1.NamespacedMetadataSchema("service account", true),
 			"image_pull_secret": {
 				Type:        schema.TypeSet,
 				Description: "A list of references to secrets in the same namespace to use for pulling any images in pods that reference this Service Account. More info: http://kubernetes.io/docs/user-guide/secrets#manually-specifying-an-imagepullsecret",
@@ -85,12 +86,12 @@ func resourceKubernetesServiceAccountCreate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(err)
 	}
 
-	metadata := structures.ExpandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	svcAcc := api.ServiceAccount{
 		AutomountServiceAccountToken: structures.PtrToBool(d.Get("automount_service_account_token").(bool)),
 		ObjectMeta:                   metadata,
-		ImagePullSecrets:             structures.ExpandLocalObjectReferenceArray(d.Get("image_pull_secret").(*schema.Set).List()),
-		Secrets:                      structures.ExpandServiceAccountSecrets(d.Get("secret").(*schema.Set).List(), ""),
+		ImagePullSecrets:             expandLocalObjectReferenceArray(d.Get("image_pull_secret").(*schema.Set).List()),
+		Secrets:                      expandServiceAccountSecrets(d.Get("secret").(*schema.Set).List(), ""),
 	}
 	log.Printf("[INFO] Creating new service account: %#v", svcAcc)
 	out, err := conn.CoreV1().ServiceAccounts(metadata.Namespace).Create(ctx, &svcAcc, metav1.CreateOptions{})
@@ -98,7 +99,7 @@ func resourceKubernetesServiceAccountCreate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(err)
 	}
 	log.Printf("[INFO] Submitted new service account: %#v", out)
-	d.SetId(structures.BuildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	secret, err := getServiceAccountDefaultSecret(ctx, out.Name, svcAcc, d.Timeout(schema.TimeoutCreate), conn)
 	if err != nil {
@@ -122,7 +123,7 @@ func getServiceAccountDefaultSecret(ctx context.Context, name string, config api
 
 		if len(resp.Secrets) == len(config.Secrets) {
 			log.Printf("[DEBUG] Configuration contains %d secrets, saw %d, expected %d", len(config.Secrets), len(resp.Secrets), len(config.Secrets)+1)
-			return resource.RetryableError(fmt.Errorf("Waiting for default secret of %q to appear", structures.BuildId(resp.ObjectMeta)))
+			return resource.RetryableError(fmt.Errorf("Waiting for default secret of %q to appear", providermetav1.BuildId(resp.ObjectMeta)))
 		}
 
 		diff := diffObjectReferences(config.Secrets, resp.Secrets)
@@ -253,7 +254,7 @@ func resourceKubernetesServiceAccountRead(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -265,7 +266,7 @@ func resourceKubernetesServiceAccountRead(ctx context.Context, d *schema.Resourc
 		return diag.FromErr(err)
 	}
 	log.Printf("[INFO] Received service account: %#v", svcAcc)
-	err = d.Set("metadata", structures.FlattenMetadata(svcAcc.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(svcAcc.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -281,14 +282,14 @@ func resourceKubernetesServiceAccountRead(ctx context.Context, d *schema.Resourc
 			return diag.FromErr(err)
 		}
 	}
-	err = d.Set("image_pull_secret", structures.FlattenLocalObjectReferenceArray(svcAcc.ImagePullSecrets))
+	err = d.Set("image_pull_secret", flattenLocalObjectReferenceArray(svcAcc.ImagePullSecrets))
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
 	defaultSecretName := d.Get("default_secret_name").(string)
 	log.Printf("[DEBUG] Default secret name is %q", defaultSecretName)
-	secrets := structures.FlattenServiceAccountSecrets(svcAcc.Secrets, defaultSecretName)
+	secrets := flattenServiceAccountSecrets(svcAcc.Secrets, defaultSecretName)
 	log.Printf("[DEBUG] Flattened secrets: %#v", secrets)
 	err = d.Set("secret", secrets)
 	if err != nil {
@@ -304,17 +305,17 @@ func resourceKubernetesServiceAccountUpdate(ctx context.Context, d *schema.Resou
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	ops := structures.PatchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 	if d.HasChange("image_pull_secret") {
 		v := d.Get("image_pull_secret").(*schema.Set).List()
 		ops = append(ops, &structures.ReplaceOperation{
 			Path:  "/imagePullSecrets",
-			Value: structures.ExpandLocalObjectReferenceArray(v),
+			Value: expandLocalObjectReferenceArray(v),
 		})
 	}
 	if d.HasChange("secret") {
@@ -323,7 +324,7 @@ func resourceKubernetesServiceAccountUpdate(ctx context.Context, d *schema.Resou
 
 		ops = append(ops, &structures.ReplaceOperation{
 			Path:  "/secrets",
-			Value: structures.ExpandServiceAccountSecrets(v, defaultSecretName),
+			Value: expandServiceAccountSecrets(v, defaultSecretName),
 		})
 	}
 	if d.HasChange("automount_service_account_token") {
@@ -343,7 +344,7 @@ func resourceKubernetesServiceAccountUpdate(ctx context.Context, d *schema.Resou
 		return diag.Errorf("Failed to update service account: %s", err)
 	}
 	log.Printf("[INFO] Submitted updated service account: %#v", out)
-	d.SetId(structures.BuildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	return resourceKubernetesServiceAccountRead(ctx, d, meta)
 }
@@ -354,7 +355,7 @@ func resourceKubernetesServiceAccountDelete(ctx context.Context, d *schema.Resou
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -377,7 +378,7 @@ func resourceKubernetesServiceAccountExists(ctx context.Context, d *schema.Resou
 		return false, err
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return false, err
 	}
@@ -399,7 +400,7 @@ func resourceKubernetesServiceAccountImportState(ctx context.Context, d *schema.
 		return nil, err
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return nil, fmt.Errorf("Unable to parse identifier %s: %s", d.Id(), err)
 	}
@@ -418,7 +419,7 @@ func resourceKubernetesServiceAccountImportState(ctx context.Context, d *schema.
 	if err != nil {
 		return nil, fmt.Errorf("Unable to set default_secret_name: %s", err)
 	}
-	d.SetId(structures.BuildId(sa.ObjectMeta))
+	d.SetId(providermetav1.BuildId(sa.ObjectMeta))
 
 	return []*schema.ResourceData{d}, nil
 }

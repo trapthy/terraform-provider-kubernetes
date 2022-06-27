@@ -6,7 +6,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
-	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	corev1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -15,7 +15,7 @@ func DataSourceKubernetesService() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceKubernetesServiceRead,
 		Schema: map[string]*schema.Schema{
-			"metadata": NamespacedMetadataSchema("service", false),
+			"metadata": providermetav1.NamespacedMetadataSchema("service", false),
 			"spec": {
 				Type:        schema.TypeList,
 				Description: "Spec defines the behavior of a service. https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#spec-and-status",
@@ -242,7 +242,6 @@ func dataSourceKubernetesServiceRead(ctx context.Context, d *schema.ResourceData
 		Namespace: d.Get("metadata.0.namespace").(string),
 		Name:      d.Get("metadata.0.name").(string),
 	}
-	d.SetId(structures.BuildId(om))
-
+	d.SetId(providermetav1.BuildId(om))
 	return resourceKubernetesServiceRead(ctx, d, meta)
 }

@@ -7,6 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 	"github.com/hashicorp/terraform-provider-kubernetes/util"
 
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -74,8 +76,8 @@ func resourceKubernetesLabels() *schema.Resource {
 }
 
 func resourceKubernetesLabelsCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	metadata := expandMetadata(d.Get("metadata").([]interface{}))
-	d.SetId(buildIdWithVersionKind(metadata,
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
+	d.SetId(providermetav1.BuildIdWithVersionKind(metadata,
 		d.Get("api_version").(string),
 		d.Get("kind").(string)))
 	diag := resourceKubernetesLabelsUpdate(ctx, d, m)
@@ -183,7 +185,7 @@ func resourceKubernetesLabelsUpdate(ctx context.Context, d *schema.ResourceData,
 
 	apiVersion := d.Get("api_version").(string)
 	kind := d.Get("kind").(string)
-	metadata := expandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	name := metadata.GetName()
 	namespace := metadata.GetNamespace()
 
@@ -262,7 +264,7 @@ func resourceKubernetesLabelsUpdate(ctx context.Context, d *schema.ResourceData,
 		patchbytes,
 		v1.PatchOptions{
 			FieldManager: defaultFieldManagerName,
-			Force:        ptrToBool(d.Get("force").(bool)),
+			Force:        structures.PtrToBool(d.Get("force").(bool)),
 		},
 	)
 	if err != nil {

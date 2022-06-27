@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 
@@ -26,7 +27,7 @@ func ResourceKubernetesLimitRange() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"metadata": NamespacedMetadataSchema("limit range", true),
+			"metadata": providermetav1.NamespacedMetadataSchema("limit range", true),
 			"spec": {
 				Type:        schema.TypeList,
 				Description: "Spec defines the limits enforced. More info: https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#spec-and-status",
@@ -87,8 +88,8 @@ func resourceKubernetesLimitRangeCreate(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 
-	metadata := structures.ExpandMetadata(d.Get("metadata").([]interface{}))
-	spec, err := structures.ExpandLimitRangeSpec(d.Get("spec").([]interface{}), d.IsNewResource())
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
+	spec, err := expandLimitRangeSpec(d.Get("spec").([]interface{}), d.IsNewResource())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -102,7 +103,7 @@ func resourceKubernetesLimitRangeCreate(ctx context.Context, d *schema.ResourceD
 		return diag.Errorf("Failed to create limit range: %s", err)
 	}
 	log.Printf("[INFO] Submitted new limit range: %#v", out)
-	d.SetId(structures.BuildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	return resourceKubernetesLimitRangeRead(ctx, d, meta)
 }
@@ -121,7 +122,7 @@ func resourceKubernetesLimitRangeRead(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -133,11 +134,11 @@ func resourceKubernetesLimitRangeRead(ctx context.Context, d *schema.ResourceDat
 	}
 	log.Printf("[INFO] Received limit range: %#v", limitRange)
 
-	err = d.Set("metadata", structures.FlattenMetadata(limitRange.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(limitRange.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	err = d.Set("spec", structures.FlattenLimitRangeSpec(limitRange.Spec))
+	err = d.Set("spec", flattenLimitRangeSpec(limitRange.Spec))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -151,14 +152,14 @@ func resourceKubernetesLimitRangeUpdate(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	ops := structures.PatchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 	if d.HasChange("spec") {
-		spec, err := structures.ExpandLimitRangeSpec(d.Get("spec").([]interface{}), d.IsNewResource())
+		spec, err := expandLimitRangeSpec(d.Get("spec").([]interface{}), d.IsNewResource())
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -177,7 +178,7 @@ func resourceKubernetesLimitRangeUpdate(ctx context.Context, d *schema.ResourceD
 		return diag.Errorf("Failed to update limit range: %s", err)
 	}
 	log.Printf("[INFO] Submitted updated limit range: %#v", out)
-	d.SetId(structures.BuildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	return resourceKubernetesLimitRangeRead(ctx, d, meta)
 }
@@ -188,7 +189,7 @@ func resourceKubernetesLimitRangeDelete(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -211,7 +212,7 @@ func resourceKubernetesLimitRangeExists(ctx context.Context, d *schema.ResourceD
 		return false, err
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return false, err
 	}

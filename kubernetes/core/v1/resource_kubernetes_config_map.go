@@ -12,6 +12,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	pkgApi "k8s.io/apimachinery/pkg/types"
 
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/validators"
@@ -28,7 +29,7 @@ func ResourceKubernetesConfigMap() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"metadata": NamespacedMetadataSchema("config map", true),
+			"metadata": providermetav1.NamespacedMetadataSchema("config map", true),
 			"binary_data": {
 				Type:         schema.TypeMap,
 				Description:  "BinaryData contains the binary data. Each key must consist of alphanumeric characters, '-', '_' or '.'. BinaryData can contain byte sequences that are not in the UTF-8 range. The keys stored in BinaryData must not overlap with the ones in the Data field, this is enforced during validation process. Using this field will require 1.10+ apiserver and kubelet. This field only accepts base64-encoded payloads that will be decoded/encoded before being sent/received to/from the apiserver.",
@@ -50,7 +51,7 @@ func resourceKubernetesConfigMapCreate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	metadata := structures.ExpandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	cfgMap := api.ConfigMap{
 		ObjectMeta: metadata,
 		BinaryData: structures.ExpandBase64MapToByteMap(d.Get("binary_data").(map[string]interface{})),
@@ -62,7 +63,7 @@ func resourceKubernetesConfigMapCreate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 	log.Printf("[INFO] Submitted new config map: %#v", out)
-	d.SetId(structures.BuildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	return resourceKubernetesConfigMapRead(ctx, d, meta)
 }
@@ -81,7 +82,7 @@ func resourceKubernetesConfigMapRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -92,7 +93,7 @@ func resourceKubernetesConfigMapRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 	log.Printf("[INFO] Received config map: %#v", cfgMap)
-	err = d.Set("metadata", structures.FlattenMetadata(cfgMap.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(cfgMap.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -109,12 +110,12 @@ func resourceKubernetesConfigMapUpdate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	ops := structures.PatchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 	if d.HasChange("binary_data") {
 		oldV, newV := d.GetChange("binary_data")
 		diffOps := structures.DiffStringMap("/binaryData/", oldV.(map[string]interface{}), newV.(map[string]interface{}))
@@ -138,7 +139,7 @@ func resourceKubernetesConfigMapUpdate(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf("Failed to update Config Map: %s", err)
 	}
 	log.Printf("[INFO] Submitted updated config map: %#v", out)
-	d.SetId(structures.BuildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	return resourceKubernetesConfigMapRead(ctx, d, meta)
 }
@@ -149,7 +150,7 @@ func resourceKubernetesConfigMapDelete(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -171,7 +172,7 @@ func resourceKubernetesConfigMapExists(ctx context.Context, d *schema.ResourceDa
 		return false, err
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return false, err
 	}

@@ -352,10 +352,10 @@ func flattenContainerPorts(in []v1.ContainerPort) []interface{} {
 func flattenContainerResourceRequirements(in v1.ResourceRequirements) ([]interface{}, error) {
 	att := make(map[string]interface{})
 	if len(in.Limits) > 0 {
-		att["limits"] = structures.FlattenResourceList(in.Limits)
+		att["limits"] = flattenResourceList(in.Limits)
 	}
 	if len(in.Requests) > 0 {
-		att["requests"] = structures.FlattenResourceList(in.Requests)
+		att["requests"] = flattenResourceList(in.Requests)
 	}
 	return []interface{}{att}, nil
 }
@@ -1025,7 +1025,7 @@ func expandContainerResourceRequirements(l []interface{}) (*v1.ResourceRequireme
 	in := l[0].(map[string]interface{})
 
 	if v, ok := in["limits"].(map[string]interface{}); ok && len(v) > 0 {
-		r, err := structures.ExpandMapToResourceList(v)
+		r, err := expandMapToResourceList(v)
 		if err != nil {
 			return obj, err
 		}
@@ -1033,7 +1033,7 @@ func expandContainerResourceRequirements(l []interface{}) (*v1.ResourceRequireme
 	}
 
 	if v, ok := in["requests"].(map[string]interface{}); ok && len(v) > 0 {
-		r, err := structures.ExpandMapToResourceList(v)
+		r, err := expandMapToResourceList(v)
 		if err != nil {
 			return obj, err
 		}

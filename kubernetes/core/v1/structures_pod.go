@@ -88,7 +88,7 @@ func FlattenPodSpec(in v1.PodSpec) ([]interface{}, error) {
 	if in.Hostname != "" {
 		att["hostname"] = in.Hostname
 	}
-	att["image_pull_secrets"] = structures.FlattenLocalObjectReferenceArray(in.ImagePullSecrets)
+	att["image_pull_secrets"] = flattenLocalObjectReferenceArray(in.ImagePullSecrets)
 
 	if in.NodeName != "" {
 		att["node_name"] = in.NodeName
@@ -735,7 +735,7 @@ func ExpandPodSpec(p []interface{}) (*v1.PodSpec, error) {
 	}
 
 	if v, ok := in["image_pull_secrets"].([]interface{}); ok {
-		cs := structures.ExpandLocalObjectReferenceArray(v)
+		cs := expandLocalObjectReferenceArray(v)
 		obj.ImagePullSecrets = cs
 	}
 

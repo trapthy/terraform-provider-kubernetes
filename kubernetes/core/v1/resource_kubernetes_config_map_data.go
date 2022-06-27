@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 
@@ -61,8 +62,8 @@ func ResourceKubernetesConfigMapV1Data() *schema.Resource {
 }
 
 func resourceKubernetesConfigMapV1DataCreate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	metadata := structures.ExpandMetadata(d.Get("metadata").([]interface{}))
-	d.SetId(structures.BuildId(metadata))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
+	d.SetId(providermetav1.BuildId(metadata))
 	diag := resourceKubernetesConfigMapV1DataUpdate(ctx, d, m)
 	if diag.HasError() {
 		d.SetId("")
@@ -76,7 +77,7 @@ func resourceKubernetesConfigMapV1DataRead(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -139,7 +140,7 @@ func resourceKubernetesConfigMapV1DataUpdate(ctx context.Context, d *schema.Reso
 		return diag.FromErr(err)
 	}
 
-	metadata := structures.ExpandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	name := metadata.GetName()
 	namespace := metadata.GetNamespace()
 

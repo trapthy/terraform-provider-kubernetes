@@ -7,8 +7,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
-	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
 
@@ -21,7 +21,7 @@ func DataSourceKubernetesPod() *schema.Resource {
 		ReadContext: dataSourceKubernetesPodRead,
 
 		Schema: map[string]*schema.Schema{
-			"metadata": NamespacedMetadataSchema("pod", true),
+			"metadata": providermetav1.NamespacedMetadataSchema("pod", true),
 			"spec": {
 				Type:        schema.TypeList,
 				Description: "Specification of the desired behavior of the pod.",
@@ -44,13 +44,13 @@ func dataSourceKubernetesPodRead(ctx context.Context, d *schema.ResourceData, me
 		return diag.FromErr(err)
 	}
 
-	metadata := structures.ExpandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 
 	om := metav1.ObjectMeta{
 		Namespace: metadata.Namespace,
 		Name:      metadata.Name,
 	}
-	d.SetId(structures.BuildId(om))
+	d.SetId(providermetav1.BuildId(om))
 
 	log.Printf("[INFO] Reading pod %s", metadata.Name)
 	pod, err := conn.CoreV1().Pods(metadata.Namespace).Get(ctx, metadata.Name, metav1.GetOptions{})
@@ -60,7 +60,7 @@ func dataSourceKubernetesPodRead(ctx context.Context, d *schema.ResourceData, me
 	}
 	log.Printf("[INFO] Received pod: %#v", pod)
 
-	err = d.Set("metadata", structures.FlattenMetadata(pod.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(pod.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}

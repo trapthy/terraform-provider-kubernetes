@@ -9,6 +9,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+
 	networking "k8s.io/api/networking/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -332,7 +334,7 @@ func testAccCheckKubernetesIngressV1Destroy(s *terraform.State) error {
 			continue
 		}
 
-		namespace, name, err := idParts(rs.Primary.ID)
+		namespace, name, err := providermetav1.IdParts(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -361,7 +363,7 @@ func testAccCheckKubernetesIngressV1Exists(n string, obj *networking.Ingress) re
 		}
 		ctx := context.TODO()
 
-		namespace, name, err := idParts(rs.Primary.ID)
+		namespace, name, err := providermetav1.IdParts(rs.Primary.ID)
 		if err != nil {
 			return err
 		}

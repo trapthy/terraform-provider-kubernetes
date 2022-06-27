@@ -3,13 +3,14 @@ package v1
 import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	providerschema "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/schema"
 	suppressors "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/suppressors"
 )
 
 func PersistentVolumeClaimFields() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"metadata": NamespacedMetadataSchema("persistent volume claim", true),
+		"metadata": providermetav1.NamespacedMetadataSchema("persistent volume claim", true),
 		"spec": {
 			Type:        schema.TypeList,
 			Description: "Spec defines the desired characteristics of a volume requested by a pod author. More info: http://kubernetes.io/docs/user-guide/persistent-volumes#persistentvolumeclaims",

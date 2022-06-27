@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 
@@ -108,7 +109,7 @@ func resourceKubernetesPersistentVolumeClaimCreate(ctx context.Context, d *schem
 	}
 	log.Printf("[INFO] Submitted new persistent volume claim: %#v", out)
 
-	d.SetId(structures.BuildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 	name := out.ObjectMeta.Name
 
 	if d.Get("wait_until_bound").(bool) {
@@ -169,7 +170,7 @@ func resourceKubernetesPersistentVolumeClaimRead(ctx context.Context, d *schema.
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -181,7 +182,7 @@ func resourceKubernetesPersistentVolumeClaimRead(ctx context.Context, d *schema.
 		return diag.FromErr(err)
 	}
 	log.Printf("[INFO] Received persistent volume claim: %#v", claim)
-	err = d.Set("metadata", structures.FlattenMetadata(claim.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(claim.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -199,16 +200,16 @@ func resourceKubernetesPersistentVolumeClaimUpdate(ctx context.Context, d *schem
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	ops := structures.PatchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 	// spec.resources.requests is the only editable field in Spec.
 	if d.HasChange("spec.0.resources.0.requests") {
 		r := d.Get("spec.0.resources.0.requests").(map[string]interface{})
-		requests, err := structures.ExpandMapToResourceList(r)
+		requests, err := expandMapToResourceList(r)
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -238,7 +239,7 @@ func resourceKubernetesPersistentVolumeClaimDelete(ctx context.Context, d *schem
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -278,7 +279,7 @@ func resourceKubernetesPersistentVolumeClaimExists(ctx context.Context, d *schem
 		return false, err
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return false, err
 	}

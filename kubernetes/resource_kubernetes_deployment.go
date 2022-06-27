@@ -13,6 +13,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/validation"
 
 	providercorev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
+
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/validators"
 
 	appsv1 "k8s.io/api/apps/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -54,7 +58,7 @@ func resourceKubernetesDeployment() *schema.Resource {
 
 func resourceKubernetesDeploymentSchemaV1() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"metadata": namespacedMetadataSchema("deployment", true),
+		"metadata": providermetav1.NamespacedMetadataSchema("deployment", true),
 		"spec": {
 			Type:        schema.TypeList,
 			Description: "Spec defines the specification of the desired behavior of the deployment. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.9/#deployment-v1-apps",
@@ -85,7 +89,7 @@ func resourceKubernetesDeploymentSchemaV1() map[string]*schema.Schema {
 						Description:  "Number of desired pods. This is a string to be able to distinguish between explicit zero and not specified.",
 						Optional:     true,
 						Computed:     true,
-						ValidateFunc: validateTypeStringNullableInt,
+						ValidateFunc: validators.ValidateTypeStringNullableInt,
 					},
 					"revision_history_limit": {
 						Type:        schema.TypeInt,
@@ -190,7 +194,7 @@ func resourceKubernetesDeploymentSchemaV1() map[string]*schema.Schema {
 						MaxItems:    1,
 						Elem: &schema.Resource{
 							Schema: map[string]*schema.Schema{
-								"metadata": namespacedMetadataSchemaIsTemplate("pod", true, true),
+								"metadata": providermetav1.NamespacedMetadataSchemaIsTemplate("pod", true, true),
 								"spec": {
 									Type:        schema.TypeList,
 									Description: "Spec defines the specification of the desired behavior of the deployment. More info: https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.9/#deployment-v1-apps",
@@ -221,7 +225,7 @@ func resourceKubernetesDeploymentCreate(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 
-	metadata := expandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	spec, err := expandDeploymentSpec(d.Get("spec").([]interface{}))
 	if err != nil {
 		return diag.FromErr(err)
@@ -238,7 +242,7 @@ func resourceKubernetesDeploymentCreate(ctx context.Context, d *schema.ResourceD
 		return diag.Errorf("Failed to create deployment: %s", err)
 	}
 
-	d.SetId(buildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	log.Printf("[DEBUG] Waiting for deployment %s to schedule %d replicas", d.Id(), *out.Spec.Replicas)
 
@@ -262,12 +266,12 @@ func resourceKubernetesDeploymentUpdate(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	ops := patchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 
 	if d.HasChange("spec") {
 		spec, err := expandDeploymentSpec(d.Get("spec").([]interface{}))
@@ -275,7 +279,7 @@ func resourceKubernetesDeploymentUpdate(ctx context.Context, d *schema.ResourceD
 			return diag.FromErr(err)
 		}
 
-		ops = append(ops, &ReplaceOperation{
+		ops = append(ops, &structures.ReplaceOperation{
 			Path:  "/spec",
 			Value: spec,
 		})
@@ -285,7 +289,7 @@ func resourceKubernetesDeploymentUpdate(ctx context.Context, d *schema.ResourceD
 		o, n := d.GetChange("spec.0.strategy.0.type")
 
 		if o.(string) == "RollingUpdate" && n.(string) == "Recreate" {
-			ops = append(ops, &RemoveOperation{
+			ops = append(ops, &structures.RemoveOperation{
 				Path: "/spec/strategy/rollingUpdate",
 			})
 		}
@@ -328,7 +332,7 @@ func resourceKubernetesDeploymentRead(ctx context.Context, d *schema.ResourceDat
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -341,7 +345,7 @@ func resourceKubernetesDeploymentRead(ctx context.Context, d *schema.ResourceDat
 	}
 	log.Printf("[INFO] Received deployment: %#v", deployment)
 
-	err = d.Set("metadata", flattenMetadata(deployment.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(deployment.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -365,7 +369,7 @@ func resourceKubernetesDeploymentDelete(ctx context.Context, d *schema.ResourceD
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -405,7 +409,7 @@ func resourceKubernetesDeploymentExists(ctx context.Context, d *schema.ResourceD
 		return false, err
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return false, err
 	}

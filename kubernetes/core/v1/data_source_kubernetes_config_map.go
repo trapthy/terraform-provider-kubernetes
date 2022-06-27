@@ -7,7 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 )
 
 func DataSourceKubernetesConfigMap() *schema.Resource {
@@ -15,7 +15,7 @@ func DataSourceKubernetesConfigMap() *schema.Resource {
 		ReadContext: dataSourceKubernetesConfigMapRead,
 
 		Schema: map[string]*schema.Schema{
-			"metadata": NamespacedMetadataSchema("config_map", false),
+			"metadata": providermetav1.NamespacedMetadataSchema("config_map", false),
 			"data": {
 				Type:        schema.TypeMap,
 				Description: "A map of the config map data.",
@@ -35,7 +35,6 @@ func dataSourceKubernetesConfigMapRead(ctx context.Context, d *schema.ResourceDa
 		Namespace: d.Get("metadata.0.namespace").(string),
 		Name:      d.Get("metadata.0.name").(string),
 	}
-	d.SetId(structures.BuildId(om))
-
+	d.SetId(providermetav1.BuildId(om))
 	return resourceKubernetesConfigMapRead(ctx, d, meta)
 }

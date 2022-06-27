@@ -5,6 +5,7 @@ import (
 	"log"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 
@@ -26,7 +27,7 @@ func ResourceKubernetesEndpoints() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"metadata": NamespacedMetadataSchema("endpoints", true),
+			"metadata": providermetav1.NamespacedMetadataSchema("endpoints", true),
 			"subset": {
 				Type:        schema.TypeSet,
 				Description: "Set of addresses and ports that comprise a service. More info: https://kubernetes.io/docs/concepts/services-networking/service/#services-without-selectors",
@@ -44,7 +45,7 @@ func resourceKubernetesEndpointsCreate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	metadata := structures.ExpandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	ep := api.Endpoints{
 		ObjectMeta: metadata,
 		Subsets:    expandEndpointsSubsets(d.Get("subset").(*schema.Set)),
@@ -55,7 +56,7 @@ func resourceKubernetesEndpointsCreate(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf("Failed to create endpoints because: %s", err)
 	}
 	log.Printf("[INFO] Submitted new endpoints: %#v", out)
-	d.SetId(structures.BuildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	return resourceKubernetesEndpointsRead(ctx, d, meta)
 }
@@ -74,7 +75,7 @@ func resourceKubernetesEndpointsRead(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.Errorf("Failed to read endpoints because: %s", err)
 	}
@@ -86,7 +87,7 @@ func resourceKubernetesEndpointsRead(ctx context.Context, d *schema.ResourceData
 		return diag.Errorf("Failed to read endpoint because: %s", err)
 	}
 	log.Printf("[INFO] Received endpoints: %#v", ep)
-	err = d.Set("metadata", structures.FlattenMetadata(ep.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(ep.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.Errorf("Failed to read endpoints because: %s", err)
 	}
@@ -107,12 +108,12 @@ func resourceKubernetesEndpointsUpdate(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.Errorf("Failed to update endpoints because: %s", err)
 	}
 
-	ops := structures.PatchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 	if d.HasChange("subset") {
 		subsets := expandEndpointsSubsets(d.Get("subset").(*schema.Set))
 		ops = append(ops, &structures.ReplaceOperation{
@@ -130,7 +131,7 @@ func resourceKubernetesEndpointsUpdate(ctx context.Context, d *schema.ResourceDa
 		return diag.Errorf("Failed to update endpoints: %s", err)
 	}
 	log.Printf("[INFO] Submitted updated endpoints: %#v", out)
-	d.SetId(structures.BuildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	return resourceKubernetesEndpointsRead(ctx, d, meta)
 }
@@ -141,7 +142,7 @@ func resourceKubernetesEndpointsDelete(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.Errorf("Failed to delete endpoints because: %s", err)
 	}
@@ -162,7 +163,7 @@ func resourceKubernetesEndpointsExists(ctx context.Context, d *schema.ResourceDa
 		return false, err
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return false, err
 	}

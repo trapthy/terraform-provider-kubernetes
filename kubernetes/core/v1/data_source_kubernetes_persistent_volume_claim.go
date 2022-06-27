@@ -8,8 +8,8 @@ import (
 
 	meta_v1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	providerschema "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/schema"
-	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 )
 
 func DataSourceKubernetesPersistentVolumeClaim() *schema.Resource {
@@ -17,7 +17,7 @@ func DataSourceKubernetesPersistentVolumeClaim() *schema.Resource {
 		ReadContext: dataSourceKubernetesPersistentVolumeClaimRead,
 
 		Schema: map[string]*schema.Schema{
-			"metadata": NamespacedMetadataSchema("persistent volume claim", true),
+			"metadata": providermetav1.NamespacedMetadataSchema("persistent volume claim", true),
 			"spec": {
 				Type:        schema.TypeList,
 				Description: "Spec defines the desired characteristics of a volume requested by a pod author. More info: http://kubernetes.io/docs/user-guide/persistent-volumes#persistentvolumeclaims",
@@ -83,13 +83,11 @@ func DataSourceKubernetesPersistentVolumeClaim() *schema.Resource {
 }
 
 func dataSourceKubernetesPersistentVolumeClaimRead(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	metadata := structures.ExpandMetadata(d.Get("metadata").([]interface{}))
-
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	om := meta_v1.ObjectMeta{
 		Namespace: metadata.Namespace,
 		Name:      metadata.Name,
 	}
-	d.SetId(structures.BuildId(om))
-
+	d.SetId(providermetav1.BuildId(om))
 	return resourceKubernetesPersistentVolumeClaimRead(ctx, d, meta)
 }

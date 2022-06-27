@@ -10,6 +10,8 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+
 	appsv1 "k8s.io/api/apps/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -1159,7 +1161,7 @@ func testAccCheckKubernetesDeploymentDestroy(s *terraform.State) error {
 			continue
 		}
 
-		namespace, name, err := idParts(rs.Primary.ID)
+		namespace, name, err := providermetav1.IdParts(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -1188,7 +1190,7 @@ func getDeploymentFromResourceName(s *terraform.State, n string) (*appsv1.Deploy
 	}
 	ctx := context.TODO()
 
-	namespace, name, err := idParts(rs.Primary.ID)
+	namespace, name, err := providermetav1.IdParts(rs.Primary.ID)
 	if err != nil {
 		return nil, err
 	}

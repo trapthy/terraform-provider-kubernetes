@@ -376,12 +376,12 @@ func flattenPersistentVolumeSource(in v1.PersistentVolumeSource) []interface{} {
 func flattenPersistentVolumeSpec(in v1.PersistentVolumeSpec) []interface{} {
 	att := make(map[string]interface{})
 	if len(in.Capacity) > 0 {
-		att["capacity"] = structures.FlattenResourceList(in.Capacity)
+		att["capacity"] = flattenResourceList(in.Capacity)
 	}
 
 	att["persistent_volume_source"] = flattenPersistentVolumeSource(in.PersistentVolumeSource)
 	if len(in.AccessModes) > 0 {
-		att["access_modes"] = structures.FlattenPersistentVolumeAccessModes(in.AccessModes)
+		att["access_modes"] = flattenPersistentVolumeAccessModes(in.AccessModes)
 	}
 	if in.PersistentVolumeReclaimPolicy != "" {
 		att["persistent_volume_reclaim_policy"] = in.PersistentVolumeReclaimPolicy
@@ -393,7 +393,7 @@ func flattenPersistentVolumeSpec(in v1.PersistentVolumeSpec) []interface{} {
 		att["node_affinity"] = flattenVolumeNodeAffinity(in.NodeAffinity)
 	}
 	if in.MountOptions != nil {
-		att["mount_options"] = structures.FlattenPersistentVolumeMountOptions(in.MountOptions)
+		att["mount_options"] = flattenPersistentVolumeMountOptions(in.MountOptions)
 	}
 	if in.VolumeMode != nil {
 		att["volume_mode"] = in.VolumeMode
@@ -1021,7 +1021,7 @@ func expandPersistentVolumeSpec(l []interface{}) (*v1.PersistentVolumeSpec, erro
 	}
 	in := l[0].(map[string]interface{})
 	if v, ok := in["capacity"].(map[string]interface{}); ok && len(v) > 0 {
-		c, err := structures.ExpandMapToResourceList(v)
+		c, err := expandMapToResourceList(v)
 		if err != nil {
 			return obj, err
 		}
@@ -1031,7 +1031,7 @@ func expandPersistentVolumeSpec(l []interface{}) (*v1.PersistentVolumeSpec, erro
 		obj.PersistentVolumeSource = expandPersistentVolumeSource(v)
 	}
 	if v, ok := in["access_modes"].(*schema.Set); ok && v.Len() > 0 {
-		obj.AccessModes = structures.ExpandPersistentVolumeAccessModes(v.List())
+		obj.AccessModes = expandPersistentVolumeAccessModes(v.List())
 	}
 	if v, ok := in["persistent_volume_reclaim_policy"].(string); ok {
 		obj.PersistentVolumeReclaimPolicy = v1.PersistentVolumeReclaimPolicy(v)
@@ -1237,7 +1237,7 @@ func patchPersistentVolumeSpec(pathPrefix, prefix string, d *schema.ResourceData
 
 	if d.HasChange(prefix + "capacity") {
 		v := d.Get(prefix + "capacity").(map[string]interface{})
-		capacity, err := structures.ExpandMapToResourceList(v)
+		capacity, err := expandMapToResourceList(v)
 		if err != nil {
 			return ops, err
 		}
@@ -1259,7 +1259,7 @@ func patchPersistentVolumeSpec(pathPrefix, prefix string, d *schema.ResourceData
 		v := d.Get(prefix + "access_modes").(*schema.Set)
 		ops = append(ops, &structures.ReplaceOperation{
 			Path:  pathPrefix + "/accessModes",
-			Value: structures.ExpandPersistentVolumeAccessModes(v.List()),
+			Value: expandPersistentVolumeAccessModes(v.List()),
 		})
 	}
 	if d.HasChange(prefix + "persistent_volume_reclaim_policy") {
@@ -1295,7 +1295,7 @@ func patchPersistentVolumeSpec(pathPrefix, prefix string, d *schema.ResourceData
 		v := d.Get(prefix + "mount_options").(*schema.Set)
 		ops = append(ops, &structures.ReplaceOperation{
 			Path:  pathPrefix + "/mountOptions",
-			Value: structures.ExpandPersistentVolumeAccessModes(v.List()),
+			Value: expandPersistentVolumeAccessModes(v.List()),
 		})
 	}
 	if d.HasChange(prefix + "claim_ref") {

@@ -30,6 +30,7 @@ import (
 	aggregator "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
 
 	corev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 )
 
 const defaultFieldManagerName = "Terraform"
@@ -578,7 +579,7 @@ func initializeConfiguration(d *schema.ResourceData) (*restclient.Config, error)
 			exec.InteractiveMode = clientcmdapi.IfAvailableExecInteractiveMode
 			exec.APIVersion = spec["api_version"].(string)
 			exec.Command = spec["command"].(string)
-			exec.Args = expandStringSlice(spec["args"].([]interface{}))
+			exec.Args = structures.ExpandStringSlice(spec["args"].([]interface{}))
 			for kk, vv := range spec["env"].(map[string]interface{}) {
 				exec.Env = append(exec.Env, clientcmdapi.ExecEnvVar{Name: kk, Value: vv.(string)})
 			}
@@ -621,7 +622,7 @@ func useAdmissionregistrationV1beta1(conn *kubernetes.Clientset) (bool, error) {
 	err = discovery.ServerSupportsVersion(d, v1)
 	if err == nil {
 		log.Printf("[INFO] Using %s/v1", group)
-		useadmissionregistrationv1beta1 = ptrToBool(false)
+		useadmissionregistrationv1beta1 = structures.PtrToBool(false)
 		return false, nil
 	}
 
@@ -636,6 +637,6 @@ func useAdmissionregistrationV1beta1(conn *kubernetes.Clientset) (bool, error) {
 	}
 
 	log.Printf("[INFO] Using %s/v1beta1", group)
-	useadmissionregistrationv1beta1 = ptrToBool(true)
+	useadmissionregistrationv1beta1 = structures.PtrToBool(true)
 	return true, nil
 }

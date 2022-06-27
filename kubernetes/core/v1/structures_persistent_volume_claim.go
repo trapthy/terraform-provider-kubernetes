@@ -7,6 +7,7 @@ import (
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
 
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 )
 
@@ -14,7 +15,7 @@ import (
 
 func FlattenPersistentVolumeClaimSpec(in v1.PersistentVolumeClaimSpec) []interface{} {
 	att := make(map[string]interface{})
-	att["access_modes"] = structures.FlattenPersistentVolumeAccessModes(in.AccessModes)
+	att["access_modes"] = flattenPersistentVolumeAccessModes(in.AccessModes)
 	att["resources"] = flattenResourceRequirements(in.Resources)
 	if in.Selector != nil {
 		att["selector"] = structures.FlattenLabelSelector(in.Selector)
@@ -31,10 +32,10 @@ func FlattenPersistentVolumeClaimSpec(in v1.PersistentVolumeClaimSpec) []interfa
 func flattenResourceRequirements(in v1.ResourceRequirements) []interface{} {
 	att := make(map[string]interface{})
 	if len(in.Limits) > 0 {
-		att["limits"] = structures.FlattenResourceList(in.Limits)
+		att["limits"] = flattenResourceList(in.Limits)
 	}
 	if len(in.Requests) > 0 {
-		att["requests"] = structures.FlattenResourceList(in.Requests)
+		att["requests"] = flattenResourceList(in.Requests)
 	}
 	return []interface{}{att}
 }
@@ -50,7 +51,7 @@ func ExpandPersistentVolumeClaim(p map[string]interface{}) (*corev1.PersistentVo
 	if !ok {
 		return pvc, errors.New("persistent_volume_claim: failed to expand 'metadata'")
 	}
-	pvc.ObjectMeta = structures.ExpandMetadata(m)
+	pvc.ObjectMeta = providermetav1.ExpandMetadata(m)
 	s, ok := p["spec"].([]interface{})
 	if !ok {
 		return pvc, errors.New("persistent_volume_claim: failed to expand 'spec'")
@@ -73,7 +74,7 @@ func expandPersistentVolumeClaimSpec(l []interface{}) (*corev1.PersistentVolumeC
 	if err != nil {
 		return nil, err
 	}
-	obj.AccessModes = structures.ExpandPersistentVolumeAccessModes(in["access_modes"].(*schema.Set).List())
+	obj.AccessModes = expandPersistentVolumeAccessModes(in["access_modes"].(*schema.Set).List())
 	obj.Resources = *resourceRequirements
 	if v, ok := in["selector"].([]interface{}); ok && len(v) > 0 {
 		obj.Selector = structures.ExpandLabelSelector(v)
@@ -94,14 +95,14 @@ func expandResourceRequirements(l []interface{}) (*corev1.ResourceRequirements, 
 	}
 	in := l[0].(map[string]interface{})
 	if v, ok := in["limits"].(map[string]interface{}); ok && len(v) > 0 {
-		rl, err := structures.ExpandMapToResourceList(v)
+		rl, err := expandMapToResourceList(v)
 		if err != nil {
 			return obj, err
 		}
 		obj.Limits = *rl
 	}
 	if v, ok := in["requests"].(map[string]interface{}); ok && len(v) > 0 {
-		rq, err := structures.ExpandMapToResourceList(v)
+		rq, err := expandMapToResourceList(v)
 		if err != nil {
 			return obj, err
 		}

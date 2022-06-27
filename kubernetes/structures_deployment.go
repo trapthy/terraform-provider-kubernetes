@@ -5,6 +5,8 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	providercorev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 	appsv1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -27,7 +29,7 @@ func flattenDeploymentSpec(in appsv1.DeploymentSpec, d *schema.ResourceData, met
 	}
 
 	if in.Selector != nil {
-		att["selector"] = flattenLabelSelector(in.Selector)
+		att["selector"] = structures.FlattenLabelSelector(in.Selector)
 	}
 
 	att["strategy"] = flattenDeploymentStrategy(in.Strategy)
@@ -38,7 +40,7 @@ func flattenDeploymentSpec(in appsv1.DeploymentSpec, d *schema.ResourceData, met
 	}
 	template := make(map[string]interface{})
 	template["spec"] = podSpec
-	template["metadata"] = flattenMetadata(in.Template.ObjectMeta, d, meta, "spec.0.template.0.")
+	template["metadata"] = providermetav1.FlattenMetadata(in.Template.ObjectMeta, d, meta, "spec.0.template.0.")
 	att["template"] = []interface{}{template}
 
 	return []interface{}{att}, nil
@@ -77,18 +79,18 @@ func expandDeploymentSpec(deployment []interface{}) (*appsv1.DeploymentSpec, err
 
 	obj.MinReadySeconds = int32(in["min_ready_seconds"].(int))
 	obj.Paused = in["paused"].(bool)
-	obj.ProgressDeadlineSeconds = ptrToInt32(int32(in["progress_deadline_seconds"].(int)))
+	obj.ProgressDeadlineSeconds = structures.PtrToInt32(int32(in["progress_deadline_seconds"].(int)))
 	if v, ok := in["replicas"].(string); ok && v != "" {
 		i, err := strconv.ParseInt(v, 10, 32)
 		if err != nil {
 			return obj, err
 		}
-		obj.Replicas = ptrToInt32(int32(i))
+		obj.Replicas = structures.PtrToInt32(int32(i))
 	}
-	obj.RevisionHistoryLimit = ptrToInt32(int32(in["revision_history_limit"].(int)))
+	obj.RevisionHistoryLimit = structures.PtrToInt32(int32(in["revision_history_limit"].(int)))
 
 	if v, ok := in["selector"].([]interface{}); ok && len(v) > 0 {
-		obj.Selector = expandLabelSelector(v)
+		obj.Selector = structures.ExpandLabelSelector(v)
 	}
 
 	if v, ok := in["strategy"].([]interface{}); ok && len(v) > 0 {
@@ -111,7 +113,7 @@ func expandPodTemplate(l []interface{}) (*corev1.PodTemplateSpec, error) {
 	}
 	in := l[0].(map[string]interface{})
 
-	obj.ObjectMeta = expandMetadata(in["metadata"].([]interface{}))
+	obj.ObjectMeta = providermetav1.ExpandMetadata(in["metadata"].([]interface{}))
 
 	if v, ok := in["spec"].([]interface{}); ok && len(v) > 0 {
 		podSpec, err := providercorev1.ExpandPodSpec(in["spec"].([]interface{}))

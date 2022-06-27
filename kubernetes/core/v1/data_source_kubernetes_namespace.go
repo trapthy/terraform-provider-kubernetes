@@ -6,8 +6,9 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
-	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
+
 	v1 "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 )
@@ -17,7 +18,7 @@ func DataSourceKubernetesNamespace() *schema.Resource {
 		ReadContext: dataSourceKubernetesNamespaceRead,
 
 		Schema: map[string]*schema.Schema{
-			"metadata": MetadataSchema("namespace", false),
+			"metadata": providermetav1.MetadataSchema("namespace", false),
 			"spec": {
 				Type:        schema.TypeList,
 				Description: "Spec defines the behavior of the Namespace.",
@@ -45,7 +46,7 @@ func dataSourceKubernetesNamespaceRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 
-	metadata := structures.ExpandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	d.SetId(metadata.Name)
 
 	namespace, err := conn.CoreV1().Namespaces().Get(ctx, metadata.Name, metav1.GetOptions{})
@@ -54,7 +55,7 @@ func dataSourceKubernetesNamespaceRead(ctx context.Context, d *schema.ResourceDa
 		return diag.FromErr(err)
 	}
 	log.Printf("[INFO] Received namespace: %#v", namespace)
-	err = d.Set("metadata", structures.FlattenMetadata(namespace.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(namespace.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}

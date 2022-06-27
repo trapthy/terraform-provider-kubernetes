@@ -7,9 +7,11 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
-
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
+
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+
 	"k8s.io/api/batch/v1beta1"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -41,7 +43,7 @@ func resourceKubernetesCronJob() *schema.Resource {
 
 func resourceKubernetesCronJobSchemaV1() map[string]*schema.Schema {
 	return map[string]*schema.Schema{
-		"metadata": namespacedMetadataSchema("cronjob", true),
+		"metadata": providermetav1.NamespacedMetadataSchema("cronjob", true),
 		"spec": {
 			Type:        schema.TypeList,
 			Description: "Spec of the cron job owned by the cluster",
@@ -60,7 +62,7 @@ func resourceKubernetesCronJobCreate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	metadata := expandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	spec, err := expandCronJobSpec(d.Get("spec").([]interface{}))
 	if err != nil {
 		return diag.FromErr(err)
@@ -79,7 +81,7 @@ func resourceKubernetesCronJobCreate(ctx context.Context, d *schema.ResourceData
 	}
 	log.Printf("[INFO] Submitted new cron job: %#v", out)
 
-	d.SetId(buildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	return resourceKubernetesCronJobRead(ctx, d, meta)
 }
@@ -90,12 +92,12 @@ func resourceKubernetesCronJobUpdate(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	namespace, _, err := idParts(d.Id())
+	namespace, _, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	metadata := expandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 	spec, err := expandCronJobSpec(d.Get("spec").([]interface{}))
 	if err != nil {
 		return diag.FromErr(err)
@@ -115,7 +117,7 @@ func resourceKubernetesCronJobUpdate(ctx context.Context, d *schema.ResourceData
 	}
 	log.Printf("[INFO] Submitted updated cron job: %#v", out)
 
-	d.SetId(buildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 	return resourceKubernetesCronJobRead(ctx, d, meta)
 }
 
@@ -133,7 +135,7 @@ func resourceKubernetesCronJobRead(ctx context.Context, d *schema.ResourceData, 
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -168,7 +170,7 @@ func resourceKubernetesCronJobRead(ctx context.Context, d *schema.ResourceData, 
 		}
 	}
 
-	err = d.Set("metadata", flattenMetadata(job.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(job.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -192,7 +194,7 @@ func resourceKubernetesCronJobDelete(ctx context.Context, d *schema.ResourceData
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -231,7 +233,7 @@ func resourceKubernetesCronJobExists(ctx context.Context, d *schema.ResourceData
 		return false, err
 	}
 
-	namespace, name, err := idParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return false, err
 	}

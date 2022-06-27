@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 	suppressors "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/suppressors"
@@ -37,7 +38,7 @@ func ResourceKubernetesResourceQuota() *schema.Resource {
 		},
 
 		Schema: map[string]*schema.Schema{
-			"metadata": NamespacedMetadataSchema("resource quota", true),
+			"metadata": providermetav1.NamespacedMetadataSchema("resource quota", true),
 			"spec": {
 				Type:        schema.TypeList,
 				Description: "Spec defines the desired quota. https://github.com/kubernetes/community/blob/master/contributors/devel/sig-architecture/api-conventions.md#spec-and-status",
@@ -114,8 +115,8 @@ func resourceKubernetesResourceQuotaCreate(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 
-	metadata := structures.ExpandMetadata(d.Get("metadata").([]interface{}))
-	spec, err := structures.ExpandResourceQuotaSpec(d.Get("spec").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
+	spec, err := expandResourceQuotaSpec(d.Get("spec").([]interface{}))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -129,14 +130,14 @@ func resourceKubernetesResourceQuotaCreate(ctx context.Context, d *schema.Resour
 		return diag.Errorf("Failed to create resource quota: %s", err)
 	}
 	log.Printf("[INFO] Submitted new resource quota: %#v", out)
-	d.SetId(structures.BuildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	err = resource.RetryContext(ctx, d.Timeout(schema.TimeoutCreate), func() *resource.RetryError {
 		quota, err := conn.CoreV1().ResourceQuotas(out.Namespace).Get(ctx, out.Name, metav1.GetOptions{})
 		if err != nil {
 			return resource.NonRetryableError(err)
 		}
-		if structures.ResourceListEquals(spec.Hard, quota.Status.Hard) {
+		if resourceListEquals(spec.Hard, quota.Status.Hard) {
 			return nil
 		}
 		err = fmt.Errorf("Quotas don't match after creation.\nExpected: %#v\nGiven: %#v",
@@ -164,7 +165,7 @@ func resourceKubernetesResourceQuotaRead(ctx context.Context, d *schema.Resource
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -185,11 +186,11 @@ func resourceKubernetesResourceQuotaRead(ctx context.Context, d *schema.Resource
 		}
 	}
 
-	err = d.Set("metadata", structures.FlattenMetadata(resQuota.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(resQuota.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}
-	err = d.Set("spec", structures.FlattenResourceQuotaSpec(resQuota.Spec))
+	err = d.Set("spec", flattenResourceQuotaSpec(resQuota.Spec))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -203,16 +204,16 @@ func resourceKubernetesResourceQuotaUpdate(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	ops := structures.PatchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 	var spec *api.ResourceQuotaSpec
 	waitForChangedSpec := false
 	if d.HasChange("spec") {
-		spec, err = structures.ExpandResourceQuotaSpec(d.Get("spec").([]interface{}))
+		spec, err = expandResourceQuotaSpec(d.Get("spec").([]interface{}))
 		if err != nil {
 			return diag.FromErr(err)
 		}
@@ -232,7 +233,7 @@ func resourceKubernetesResourceQuotaUpdate(ctx context.Context, d *schema.Resour
 		return diag.Errorf("Failed to update resource quota: %s", err)
 	}
 	log.Printf("[INFO] Submitted updated resource quota: %#v", out)
-	d.SetId(structures.BuildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	if waitForChangedSpec {
 		err = resource.RetryContext(ctx, d.Timeout(schema.TimeoutUpdate), func() *resource.RetryError {
@@ -240,7 +241,7 @@ func resourceKubernetesResourceQuotaUpdate(ctx context.Context, d *schema.Resour
 			if err != nil {
 				return resource.NonRetryableError(err)
 			}
-			if structures.ResourceListEquals(spec.Hard, quota.Status.Hard) {
+			if resourceListEquals(spec.Hard, quota.Status.Hard) {
 				return nil
 			}
 			err = fmt.Errorf("Quotas don't match after update.\nExpected: %#v\nGiven: %#v",
@@ -261,7 +262,7 @@ func resourceKubernetesResourceQuotaDelete(ctx context.Context, d *schema.Resour
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -284,7 +285,7 @@ func resourceKubernetesResourceQuotaExists(ctx context.Context, d *schema.Resour
 		return false, err
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return false, err
 	}

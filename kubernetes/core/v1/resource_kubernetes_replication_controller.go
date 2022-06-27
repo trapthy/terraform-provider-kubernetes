@@ -7,6 +7,7 @@ import (
 	"time"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 
@@ -50,7 +51,7 @@ func ResourceKubernetesReplicationController() *schema.Resource {
 func resourceKubernetesReplicationControllerSchemaV1() map[string]*schema.Schema {
 
 	return map[string]*schema.Schema{
-		"metadata": NamespacedMetadataSchema("replication controller", true),
+		"metadata": providermetav1.NamespacedMetadataSchema("replication controller", true),
 		"spec": {
 			Type:        schema.TypeList,
 			Description: "Spec defines the specification of the desired behavior of the replication controller. More info: http://releases.k8s.io/HEAD/docs/devel/api-conventions.md#spec-and-status",
@@ -91,7 +92,7 @@ func resourceKubernetesReplicationControllerSchemaV1() map[string]*schema.Schema
 }
 
 func replicationControllerTemplateFieldSpec() map[string]*schema.Schema {
-	metadata := NamespacedMetadataSchemaIsTemplate("replication controller's template", true, true)
+	metadata := providermetav1.NamespacedMetadataSchemaIsTemplate("replication controller's template", true, true)
 	metadata.Required = true
 
 	templateFields := map[string]*schema.Schema{
@@ -115,7 +116,7 @@ func resourceKubernetesReplicationControllerCreate(ctx context.Context, d *schem
 		return diag.FromErr(err)
 	}
 
-	metadata := structures.ExpandMetadata(d.Get("metadata").([]interface{}))
+	metadata := providermetav1.ExpandMetadata(d.Get("metadata").([]interface{}))
 
 	spec, err := expandReplicationControllerSpec(d.Get("spec").([]interface{}))
 	if err != nil {
@@ -133,7 +134,7 @@ func resourceKubernetesReplicationControllerCreate(ctx context.Context, d *schem
 		return diag.Errorf("Failed to create replication controller: %s", err)
 	}
 
-	d.SetId(structures.BuildId(out.ObjectMeta))
+	d.SetId(providermetav1.BuildId(out.ObjectMeta))
 
 	log.Printf("[DEBUG] Waiting for replication controller %s to schedule %d replicas",
 		d.Id(), *out.Spec.Replicas)
@@ -166,7 +167,7 @@ func resourceKubernetesReplicationControllerRead(ctx context.Context, d *schema.
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -179,7 +180,7 @@ func resourceKubernetesReplicationControllerRead(ctx context.Context, d *schema.
 	}
 	log.Printf("[INFO] Received replication controller: %#v", rc)
 
-	err = d.Set("metadata", structures.FlattenMetadata(rc.ObjectMeta, d, meta))
+	err = d.Set("metadata", providermetav1.FlattenMetadata(rc.ObjectMeta, d, meta))
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -203,12 +204,12 @@ func resourceKubernetesReplicationControllerUpdate(ctx context.Context, d *schem
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
 
-	ops := structures.PatchMetadata("metadata.0.", "/metadata/", d)
+	ops := providermetav1.PatchMetadata("metadata.0.", "/metadata/", d)
 
 	if d.HasChange("spec") {
 		spec, err := expandReplicationControllerSpec(d.Get("spec").([]interface{}))
@@ -247,7 +248,7 @@ func resourceKubernetesReplicationControllerDelete(ctx context.Context, d *schem
 		return diag.FromErr(err)
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -312,7 +313,7 @@ func resourceKubernetesReplicationControllerExists(ctx context.Context, d *schem
 		return false, err
 	}
 
-	namespace, name, err := structures.IdParts(d.Id())
+	namespace, name, err := providermetav1.IdParts(d.Id())
 	if err != nil {
 		return false, err
 	}

@@ -10,6 +10,10 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/acctest"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/resource"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
+
+	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 	api "k8s.io/api/core/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -475,14 +479,14 @@ func TestAccKubernetesService_nodePort(t *testing.T) {
 					resource.TestCheckResourceAttr(resourceName, "spec.0.type", "NodePort"),
 					testAccCheckServicePorts(&conf, []api.ServicePort{
 						{
-							AppProtocol: ptrToString("ssh"),
+							AppProtocol: structures.PtrToString("ssh"),
 							Name:        "first",
 							Port:        int32(10222),
 							Protocol:    api.ProtocolTCP,
 							TargetPort:  intstr.FromInt(22),
 						},
 						{
-							AppProtocol: ptrToString("terraform.io/kubernetes"),
+							AppProtocol: structures.PtrToString("terraform.io/kubernetes"),
 							Name:        "second",
 							Port:        int32(10333),
 							Protocol:    api.ProtocolTCP,
@@ -824,7 +828,7 @@ func testAccCheckKubernetesServiceDestroy(s *terraform.State) error {
 			continue
 		}
 
-		namespace, name, err := idParts(rs.Primary.ID)
+		namespace, name, err := providermetav1.IdParts(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
@@ -853,7 +857,7 @@ func testAccCheckKubernetesServiceExists(n string, obj *api.Service) resource.Te
 		}
 		ctx := context.TODO()
 
-		namespace, name, err := idParts(rs.Primary.ID)
+		namespace, name, err := providermetav1.IdParts(rs.Primary.ID)
 		if err != nil {
 			return err
 		}
