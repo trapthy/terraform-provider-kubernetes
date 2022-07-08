@@ -29,7 +29,7 @@ import (
 	clientcmdapi "k8s.io/client-go/tools/clientcmd/api"
 	aggregator "k8s.io/kube-aggregator/pkg/client/clientset_generated/clientset"
 
-	corev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
+	providercorev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 )
 
@@ -208,21 +208,21 @@ func Provider() *schema.Provider {
 
 		DataSourcesMap: map[string]*schema.Resource{
 			// core
-			"kubernetes_config_map":                 corev1.DataSourceKubernetesConfigMap(),
-			"kubernetes_config_map_v1":              corev1.DataSourceKubernetesConfigMap(),
-			"kubernetes_namespace":                  corev1.DataSourceKubernetesNamespace(),
-			"kubernetes_namespace_v1":               corev1.DataSourceKubernetesNamespace(),
-			"kubernetes_all_namespaces":             corev1.DataSourceKubernetesAllNamespaces(),
-			"kubernetes_secret":                     corev1.DataSourceKubernetesSecret(),
-			"kubernetes_secret_v1":                  corev1.DataSourceKubernetesSecret(),
-			"kubernetes_service":                    corev1.DataSourceKubernetesService(),
-			"kubernetes_service_v1":                 corev1.DataSourceKubernetesService(),
-			"kubernetes_pod":                        corev1.DataSourceKubernetesPod(),
-			"kubernetes_pod_v1":                     corev1.DataSourceKubernetesPod(),
-			"kubernetes_service_account":            corev1.DataSourceKubernetesServiceAccount(),
-			"kubernetes_service_account_v1":         corev1.DataSourceKubernetesServiceAccount(),
-			"kubernetes_persistent_volume_claim":    corev1.DataSourceKubernetesPersistentVolumeClaim(),
-			"kubernetes_persistent_volume_claim_v1": corev1.DataSourceKubernetesPersistentVolumeClaim(),
+			"kubernetes_config_map":                 providercorev1.DataSourceKubernetesConfigMap(),
+			"kubernetes_config_map_v1":              providercorev1.DataSourceKubernetesConfigMap(),
+			"kubernetes_namespace":                  providercorev1.DataSourceKubernetesNamespace(),
+			"kubernetes_namespace_v1":               providercorev1.DataSourceKubernetesNamespace(),
+			"kubernetes_all_namespaces":             providercorev1.DataSourceKubernetesAllNamespaces(),
+			"kubernetes_secret":                     providercorev1.DataSourceKubernetesSecret(),
+			"kubernetes_secret_v1":                  providercorev1.DataSourceKubernetesSecret(),
+			"kubernetes_service":                    providercorev1.DataSourceKubernetesService(),
+			"kubernetes_service_v1":                 providercorev1.DataSourceKubernetesService(),
+			"kubernetes_pod":                        providercorev1.DataSourceKubernetesPod(),
+			"kubernetes_pod_v1":                     providercorev1.DataSourceKubernetesPod(),
+			"kubernetes_service_account":            providercorev1.DataSourceKubernetesServiceAccount(),
+			"kubernetes_service_account_v1":         providercorev1.DataSourceKubernetesServiceAccount(),
+			"kubernetes_persistent_volume_claim":    providercorev1.DataSourceKubernetesPersistentVolumeClaim(),
+			"kubernetes_persistent_volume_claim_v1": providercorev1.DataSourceKubernetesPersistentVolumeClaim(),
 
 			// networking
 			"kubernetes_ingress":    dataSourceKubernetesIngress(),
@@ -238,33 +238,33 @@ func Provider() *schema.Provider {
 
 		ResourcesMap: map[string]*schema.Resource{
 			// core
-			"kubernetes_namespace":                  corev1.ResourceKubernetesNamespace(),
-			"kubernetes_namespace_v1":               corev1.ResourceKubernetesNamespace(),
-			"kubernetes_service":                    corev1.ResourceKubernetesService(),
-			"kubernetes_service_v1":                 corev1.ResourceKubernetesService(),
-			"kubernetes_service_account":            corev1.ResourceKubernetesServiceAccount(),
-			"kubernetes_service_account_v1":         corev1.ResourceKubernetesServiceAccount(),
-			"kubernetes_default_service_account":    corev1.ResourceKubernetesDefaultServiceAccount(),
-			"kubernetes_default_service_account_v1": corev1.ResourceKubernetesDefaultServiceAccount(),
-			"kubernetes_config_map":                 corev1.ResourceKubernetesConfigMap(),
-			"kubernetes_config_map_v1":              corev1.ResourceKubernetesConfigMap(),
-			"kubernetes_config_map_v1_data":         corev1.ResourceKubernetesConfigMapV1Data(),
-			"kubernetes_secret":                     corev1.ResourceKubernetesSecret(),
-			"kubernetes_secret_v1":                  corev1.ResourceKubernetesSecret(),
-			"kubernetes_pod":                        corev1.ResourceKubernetesPod(),
-			"kubernetes_pod_v1":                     corev1.ResourceKubernetesPod(),
-			"kubernetes_endpoints":                  corev1.ResourceKubernetesEndpoints(),
-			"kubernetes_endpoints_v1":               corev1.ResourceKubernetesEndpoints(),
-			"kubernetes_limit_range":                corev1.ResourceKubernetesLimitRange(),
-			"kubernetes_limit_range_v1":             corev1.ResourceKubernetesLimitRange(),
-			"kubernetes_persistent_volume":          corev1.ResourceKubernetesPersistentVolume(),
-			"kubernetes_persistent_volume_v1":       corev1.ResourceKubernetesPersistentVolume(),
-			"kubernetes_persistent_volume_claim":    corev1.ResourceKubernetesPersistentVolumeClaim(),
-			"kubernetes_persistent_volume_claim_v1": corev1.ResourceKubernetesPersistentVolumeClaim(),
-			"kubernetes_replication_controller":     corev1.ResourceKubernetesReplicationController(),
-			"kubernetes_replication_controller_v1":  corev1.ResourceKubernetesReplicationController(),
-			"kubernetes_resource_quota":             corev1.ResourceKubernetesResourceQuota(),
-			"kubernetes_resource_quota_v1":          corev1.ResourceKubernetesResourceQuota(),
+			"kubernetes_namespace":                  providercorev1.ResourceKubernetesNamespace(),
+			"kubernetes_namespace_v1":               providercorev1.ResourceKubernetesNamespace(),
+			"kubernetes_service":                    providercorev1.ResourceKubernetesService(),
+			"kubernetes_service_v1":                 providercorev1.ResourceKubernetesService(),
+			"kubernetes_service_account":            providercorev1.ResourceKubernetesServiceAccount(),
+			"kubernetes_service_account_v1":         providercorev1.ResourceKubernetesServiceAccount(),
+			"kubernetes_default_service_account":    providercorev1.ResourceKubernetesDefaultServiceAccount(),
+			"kubernetes_default_service_account_v1": providercorev1.ResourceKubernetesDefaultServiceAccount(),
+			"kubernetes_config_map":                 providercorev1.ResourceKubernetesConfigMap(),
+			"kubernetes_config_map_v1":              providercorev1.ResourceKubernetesConfigMap(),
+			"kubernetes_config_map_v1_data":         providercorev1.ResourceKubernetesConfigMapV1Data(),
+			"kubernetes_secret":                     providercorev1.ResourceKubernetesSecret(),
+			"kubernetes_secret_v1":                  providercorev1.ResourceKubernetesSecret(),
+			"kubernetes_pod":                        providercorev1.ResourceKubernetesPod(),
+			"kubernetes_pod_v1":                     providercorev1.ResourceKubernetesPod(),
+			"kubernetes_endpoints":                  providercorev1.ResourceKubernetesEndpoints(),
+			"kubernetes_endpoints_v1":               providercorev1.ResourceKubernetesEndpoints(),
+			"kubernetes_limit_range":                providercorev1.ResourceKubernetesLimitRange(),
+			"kubernetes_limit_range_v1":             providercorev1.ResourceKubernetesLimitRange(),
+			"kubernetes_persistent_volume":          providercorev1.ResourceKubernetesPersistentVolume(),
+			"kubernetes_persistent_volume_v1":       providercorev1.ResourceKubernetesPersistentVolume(),
+			"kubernetes_persistent_volume_claim":    providercorev1.ResourceKubernetesPersistentVolumeClaim(),
+			"kubernetes_persistent_volume_claim_v1": providercorev1.ResourceKubernetesPersistentVolumeClaim(),
+			"kubernetes_replication_controller":     providercorev1.ResourceKubernetesReplicationController(),
+			"kubernetes_replication_controller_v1":  providercorev1.ResourceKubernetesReplicationController(),
+			"kubernetes_resource_quota":             providercorev1.ResourceKubernetesResourceQuota(),
+			"kubernetes_resource_quota_v1":          providercorev1.ResourceKubernetesResourceQuota(),
 
 			// api registration
 			"kubernetes_api_service":    resourceKubernetesAPIService(),

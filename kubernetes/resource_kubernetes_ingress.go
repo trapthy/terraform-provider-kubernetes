@@ -14,7 +14,7 @@ import (
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
-	corev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
+	providercorev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
 	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 )
@@ -259,7 +259,7 @@ func resourceKubernetesIngressRead(ctx context.Context, d *schema.ResourceData, 
 
 	err = d.Set("status", []interface{}{
 		map[string][]interface{}{
-			"load_balancer": corev1.FlattenLoadBalancerStatus(ing.Status.LoadBalancer),
+			"load_balancer": providercorev1.FlattenLoadBalancerStatus(ing.Status.LoadBalancer),
 		},
 	})
 	if err != nil {
