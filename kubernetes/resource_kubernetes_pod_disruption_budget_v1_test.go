@@ -10,6 +10,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 
 	policy "k8s.io/api/policy/v1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
@@ -86,7 +87,7 @@ func TestAccKubernetesPodDisruptionBudgetV1_basic(t *testing.T) {
 }
 
 func testAccCheckKubernetesPodDisruptionBudgetV1Destroy(s *terraform.State) error {
-	conn, err := testAccProvider.Meta().(KubeClientsets).MainClientset()
+	conn, err := testAccProvider.Meta().(provider.KubeClientsets).MainClientset()
 
 	if err != nil {
 		return err
@@ -121,7 +122,7 @@ func testAccCheckKubernetesPodDisruptionBudgetV1Exists(n string, obj *policy.Pod
 			return fmt.Errorf("Not found: %s", n)
 		}
 
-		conn, err := testAccProvider.Meta().(KubeClientsets).MainClientset()
+		conn, err := testAccProvider.Meta().(provider.KubeClientsets).MainClientset()
 		if err != nil {
 			return err
 		}

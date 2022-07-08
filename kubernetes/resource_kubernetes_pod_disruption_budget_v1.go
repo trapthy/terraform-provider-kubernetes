@@ -7,6 +7,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/validators"
 
 	policy "k8s.io/api/policy/v1"
@@ -78,7 +79,7 @@ func resourceKubernetesPodDisruptionBudgetV1() *schema.Resource {
 }
 
 func resourceKubernetesPodDisruptionBudgetV1Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -107,7 +108,7 @@ func resourceKubernetesPodDisruptionBudgetV1Update(ctx context.Context, d *schem
 }
 
 func resourceKubernetesPodDisruptionBudgetV1Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -143,7 +144,7 @@ func resourceKubernetesPodDisruptionBudgetV1Read(ctx context.Context, d *schema.
 		d.SetId("")
 		return diag.Diagnostics{}
 	}
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -175,7 +176,7 @@ func resourceKubernetesPodDisruptionBudgetV1Read(ctx context.Context, d *schema.
 }
 
 func resourceKubernetesPodDisruptionBudgetV1Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -199,7 +200,7 @@ func resourceKubernetesPodDisruptionBudgetV1Delete(ctx context.Context, d *schem
 }
 
 func resourceKubernetesPodDisruptionBudgetV1Exists(ctx context.Context, d *schema.ResourceData, meta interface{}) (bool, error) {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return false, err
 	}

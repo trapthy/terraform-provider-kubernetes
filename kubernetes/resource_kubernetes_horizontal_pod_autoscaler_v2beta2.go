@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -112,7 +113,7 @@ func resourceKubernetesHorizontalPodAutoscalerV2Beta2() *schema.Resource {
 }
 
 func resourceKubernetesHorizontalPodAutoscalerV2Beta2Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -148,7 +149,7 @@ func resourceKubernetesHorizontalPodAutoscalerV2Beta2Read(ctx context.Context, d
 		d.SetId("")
 		return diag.Diagnostics{}
 	}
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -180,7 +181,7 @@ func resourceKubernetesHorizontalPodAutoscalerV2Beta2Read(ctx context.Context, d
 }
 
 func resourceKubernetesHorizontalPodAutoscalerV2Beta2Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -211,7 +212,7 @@ func resourceKubernetesHorizontalPodAutoscalerV2Beta2Update(ctx context.Context,
 }
 
 func resourceKubernetesHorizontalPodAutoscalerV2Beta2Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -233,7 +234,7 @@ func resourceKubernetesHorizontalPodAutoscalerV2Beta2Delete(ctx context.Context,
 }
 
 func resourceKubernetesHorizontalPodAutoscalerV2Beta2Exists(ctx context.Context, d *schema.ResourceData, meta interface{}) (bool, error) {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return false, err
 	}

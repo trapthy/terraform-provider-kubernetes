@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/validators"
 
@@ -105,7 +106,7 @@ func resourceKubernetesAPIService() *schema.Resource {
 }
 
 func resourceKubernetesAPIServiceCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).AggregatorClientset()
+	conn, err := meta.(provider.KubeClientsets).AggregatorClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -136,7 +137,7 @@ func resourceKubernetesAPIServiceRead(ctx context.Context, d *schema.ResourceDat
 		d.SetId("")
 		return diag.Diagnostics{}
 	}
-	conn, err := meta.(KubeClientsets).AggregatorClientset()
+	conn, err := meta.(provider.KubeClientsets).AggregatorClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -165,7 +166,7 @@ func resourceKubernetesAPIServiceRead(ctx context.Context, d *schema.ResourceDat
 }
 
 func resourceKubernetesAPIServiceUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).AggregatorClientset()
+	conn, err := meta.(provider.KubeClientsets).AggregatorClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -194,7 +195,7 @@ func resourceKubernetesAPIServiceUpdate(ctx context.Context, d *schema.ResourceD
 }
 
 func resourceKubernetesAPIServiceDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).AggregatorClientset()
+	conn, err := meta.(provider.KubeClientsets).AggregatorClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -214,7 +215,7 @@ func resourceKubernetesAPIServiceDelete(ctx context.Context, d *schema.ResourceD
 }
 
 func resourceKubernetesAPIServiceExists(ctx context.Context, d *schema.ResourceData, meta interface{}) (bool, error) {
-	conn, err := meta.(KubeClientsets).AggregatorClientset()
+	conn, err := meta.(provider.KubeClientsets).AggregatorClientset()
 	if err != nil {
 		return false, err
 	}

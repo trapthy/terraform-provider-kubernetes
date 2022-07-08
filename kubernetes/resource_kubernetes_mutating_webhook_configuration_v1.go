@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
@@ -140,7 +141,7 @@ func resourceKubernetesMutatingWebhookConfigurationV1() *schema.Resource {
 }
 
 func resourceKubernetesMutatingWebhookConfigurationV1Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -173,7 +174,7 @@ func resourceKubernetesMutatingWebhookConfigurationV1Read(ctx context.Context, d
 		d.SetId("")
 		return diag.Diagnostics{}
 	}
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -200,7 +201,7 @@ func resourceKubernetesMutatingWebhookConfigurationV1Read(ctx context.Context, d
 }
 
 func resourceKubernetesMutatingWebhookConfigurationV1Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -235,7 +236,7 @@ func resourceKubernetesMutatingWebhookConfigurationV1Update(ctx context.Context,
 }
 
 func resourceKubernetesMutatingWebhookConfigurationV1Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -255,7 +256,7 @@ func resourceKubernetesMutatingWebhookConfigurationV1Delete(ctx context.Context,
 }
 
 func resourceKubernetesMutatingWebhookConfigurationV1Exists(ctx context.Context, d *schema.ResourceData, meta interface{}) (bool, error) {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return false, err
 	}

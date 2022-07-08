@@ -14,6 +14,7 @@ import (
 
 	providercorev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
 	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/validators"
@@ -220,7 +221,7 @@ func resourceKubernetesDeploymentSchemaV1() map[string]*schema.Schema {
 }
 
 func resourceKubernetesDeploymentCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -261,7 +262,7 @@ func resourceKubernetesDeploymentCreate(ctx context.Context, d *schema.ResourceD
 }
 
 func resourceKubernetesDeploymentUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -327,7 +328,7 @@ func resourceKubernetesDeploymentRead(ctx context.Context, d *schema.ResourceDat
 		d.SetId("")
 		return diag.Diagnostics{}
 	}
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -364,7 +365,7 @@ func resourceKubernetesDeploymentRead(ctx context.Context, d *schema.ResourceDat
 }
 
 func resourceKubernetesDeploymentDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -404,7 +405,7 @@ func resourceKubernetesDeploymentDelete(ctx context.Context, d *schema.ResourceD
 }
 
 func resourceKubernetesDeploymentExists(ctx context.Context, d *schema.ResourceData, meta interface{}) (bool, error) {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return false, err
 	}

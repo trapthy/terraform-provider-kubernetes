@@ -347,24 +347,19 @@ func Provider() *schema.Provider {
 	return p
 }
 
-type KubeClientsets interface {
-	MainClientset() (*kubernetes.Clientset, error)
-	AggregatorClientset() (*aggregator.Clientset, error)
-	DynamicClient() (dynamic.Interface, error)
-	DiscoveryClient() (discovery.DiscoveryInterface, error)
-}
-
 type kubeClientsets struct {
-	// TODO: this struct has become overloaded we should
-	// rename this or break it into smaller structs
 	config              *restclient.Config
 	mainClientset       *kubernetes.Clientset
 	aggregatorClientset *aggregator.Clientset
 	dynamicClient       dynamic.Interface
 	discoveryClient     discovery.DiscoveryInterface
+}
 
-	IgnoreAnnotations []string
-	IgnoreLabels      []string
+type providerMeta struct {
+	ignoredAnnotations []string
+	ignoredLabels      []string
+
+	kubeClientsets
 }
 
 func (k kubeClientsets) MainClientset() (*kubernetes.Clientset, error) {
@@ -426,8 +421,12 @@ func (k kubeClientsets) DiscoveryClient() (discovery.DiscoveryInterface, error) 
 	return k.discoveryClient, nil
 }
 
-func (k kubeClientsets) ConfigData() *schema.ResourceData {
-	return k.configData
+func (p providerMeta) IgnoredAnnotations() []string {
+	return p.ignoredAnnotations
+}
+
+func (p providerMeta) IgnoredLabels() []string {
+	return p.ignoredLabels
 }
 
 func providerConfigure(ctx context.Context, d *schema.ResourceData, terraformVersion string) (interface{}, diag.Diagnostics) {
@@ -457,18 +456,20 @@ func providerConfigure(ctx context.Context, d *schema.ResourceData, terraformVer
 	ignoreLabels := []string{}
 
 	if v, ok := d.Get("ignore_annotations").([]interface{}); ok {
-		ignoreAnnotations = expandStringSlice(v)
+		ignoreAnnotations = structures.ExpandStringSlice(v)
 	}
 	if v, ok := d.Get("ignore_labels").([]interface{}); ok {
-		ignoreLabels = expandStringSlice(v)
+		ignoreLabels = structures.ExpandStringSlice(v)
 	}
 
-	m := kubeClientsets{
-		config:              cfg,
-		mainClientset:       nil,
-		aggregatorClientset: nil,
-		IgnoreAnnotations:   ignoreAnnotations,
-		IgnoreLabels:        ignoreLabels,
+	m := providerMeta{
+		ignoreAnnotations,
+		ignoreLabels,
+		kubeClientsets{
+			config:              cfg,
+			mainClientset:       nil,
+			aggregatorClientset: nil,
+		},
 	}
 	return m, diag.Diagnostics{}
 }

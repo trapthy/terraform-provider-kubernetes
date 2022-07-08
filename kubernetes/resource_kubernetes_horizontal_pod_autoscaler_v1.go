@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 
 	api "k8s.io/api/autoscaling/v1"
 	"k8s.io/apimachinery/pkg/api/errors"
@@ -83,7 +84,7 @@ func resourceKubernetesHorizontalPodAutoscalerV1() *schema.Resource {
 }
 
 func resourceKubernetesHorizontalPodAutoscalerV1Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -120,7 +121,7 @@ func resourceKubernetesHorizontalPodAutoscalerV1Read(ctx context.Context, d *sch
 		return diag.Diagnostics{}
 	}
 
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -153,7 +154,7 @@ func resourceKubernetesHorizontalPodAutoscalerV1Read(ctx context.Context, d *sch
 }
 
 func resourceKubernetesHorizontalPodAutoscalerV1Update(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -184,7 +185,7 @@ func resourceKubernetesHorizontalPodAutoscalerV1Update(ctx context.Context, d *s
 }
 
 func resourceKubernetesHorizontalPodAutoscalerV1Delete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -206,7 +207,7 @@ func resourceKubernetesHorizontalPodAutoscalerV1Delete(ctx context.Context, d *s
 }
 
 func resourceKubernetesHorizontalPodAutoscalerV1Exists(ctx context.Context, d *schema.ResourceData, meta interface{}) (bool, error) {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return false, err
 	}

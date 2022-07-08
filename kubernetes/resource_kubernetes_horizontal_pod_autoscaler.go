@@ -6,6 +6,7 @@ import (
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	api "k8s.io/api/autoscaling/v1"
@@ -115,7 +116,7 @@ func resourceKubernetesHorizontalPodAutoscalerCreate(ctx context.Context, d *sch
 		return resourceKubernetesHorizontalPodAutoscalerV2Beta2Create(ctx, d, meta)
 	}
 
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -155,7 +156,7 @@ func resourceKubernetesHorizontalPodAutoscalerRead(ctx context.Context, d *schem
 		return resourceKubernetesHorizontalPodAutoscalerV2Beta2Read(ctx, d, meta)
 	}
 
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -197,7 +198,7 @@ func resourceKubernetesHorizontalPodAutoscalerUpdate(ctx context.Context, d *sch
 		return resourceKubernetesHorizontalPodAutoscalerV2Beta2Update(ctx, d, meta)
 	}
 
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -232,7 +233,7 @@ func resourceKubernetesHorizontalPodAutoscalerDelete(ctx context.Context, d *sch
 		return resourceKubernetesHorizontalPodAutoscalerV2Beta2Delete(ctx, d, meta)
 	}
 
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -258,7 +259,7 @@ func resourceKubernetesHorizontalPodAutoscalerExists(ctx context.Context, d *sch
 		return resourceKubernetesHorizontalPodAutoscalerV2Beta2Exists(ctx, d, meta)
 	}
 
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return false, err
 	}

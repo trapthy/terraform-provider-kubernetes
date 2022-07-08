@@ -8,6 +8,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/diag"
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/structures"
 	"github.com/hashicorp/terraform-provider-kubernetes/util"
 
@@ -88,7 +89,7 @@ func resourceKubernetesLabelsCreate(ctx context.Context, d *schema.ResourceData,
 }
 
 func resourceKubernetesLabelsRead(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	conn, err := m.(KubeClientsets).DynamicClient()
+	conn, err := m.(provider.KubeClientsets).DynamicClient()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -99,7 +100,7 @@ func resourceKubernetesLabelsRead(ctx context.Context, d *schema.ResourceData, m
 	}
 
 	// figure out which resource client to use
-	dc, err := m.(KubeClientsets).DiscoveryClient()
+	dc, err := m.(provider.KubeClientsets).DiscoveryClient()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -178,7 +179,7 @@ func getManagedLabels(managedFields []v1.ManagedFieldsEntry, manager string) (ma
 }
 
 func resourceKubernetesLabelsUpdate(ctx context.Context, d *schema.ResourceData, m interface{}) diag.Diagnostics {
-	conn, err := m.(KubeClientsets).DynamicClient()
+	conn, err := m.(provider.KubeClientsets).DynamicClient()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -190,7 +191,7 @@ func resourceKubernetesLabelsUpdate(ctx context.Context, d *schema.ResourceData,
 	namespace := metadata.GetNamespace()
 
 	// figure out which resource client to use
-	dc, err := m.(KubeClientsets).DiscoveryClient()
+	dc, err := m.(provider.KubeClientsets).DiscoveryClient()
 	if err != nil {
 		return diag.FromErr(err)
 	}

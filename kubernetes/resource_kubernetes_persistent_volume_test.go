@@ -16,6 +16,7 @@ import (
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 
 	providercorev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 )
 
 func TestAccKubernetesPersistentVolume_minimal(t *testing.T) {
@@ -923,7 +924,7 @@ func testAccCheckKubernetesPersistentVolumeForceNew(old, new *api.PersistentVolu
 }
 
 func waitForPersistentVolumeDeleted(pvName string, poll, timeout time.Duration) error {
-	conn, err := testAccProvider.Meta().(KubeClientsets).MainClientset()
+	conn, err := testAccProvider.Meta().(provider.KubeClientsets).MainClientset()
 
 	if err != nil {
 		return err
@@ -940,7 +941,7 @@ func waitForPersistentVolumeDeleted(pvName string, poll, timeout time.Duration) 
 }
 
 func testAccCheckKubernetesPersistentVolumeDestroy(s *terraform.State) error {
-	conn, err := testAccProvider.Meta().(KubeClientsets).MainClientset()
+	conn, err := testAccProvider.Meta().(provider.KubeClientsets).MainClientset()
 
 	if err != nil {
 		return err
@@ -973,7 +974,7 @@ func testAccCheckKubernetesPersistentVolumeExists(n string, obj *api.PersistentV
 			return fmt.Errorf("Not found: %s", n)
 		}
 
-		conn, err := testAccProvider.Meta().(KubeClientsets).MainClientset()
+		conn, err := testAccProvider.Meta().(provider.KubeClientsets).MainClientset()
 		if err != nil {
 			return err
 		}

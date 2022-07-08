@@ -15,6 +15,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 )
 
 func TestAccKubernetesPod_minimal(t *testing.T) {
@@ -1207,7 +1208,7 @@ func TestAccKubernetesPod_readinessGate(t *testing.T) {
 			{
 				Config: testAccKubernetesPodConfigReadinessGate(secretName, configMapName, podName, imageName1),
 				PreConfig: func() {
-					conn, err := testAccProvider.Meta().(KubeClientsets).MainClientset()
+					conn, err := testAccProvider.Meta().(provider.KubeClientsets).MainClientset()
 					if err != nil {
 						t.Fatal(err)
 					}
@@ -1273,7 +1274,7 @@ func TestAccKubernetesPod_topologySpreadConstraint(t *testing.T) {
 }
 
 func testAccCheckCSIDriverExists(csiDriverName string) error {
-	conn, err := testAccProvider.Meta().(KubeClientsets).MainClientset()
+	conn, err := testAccProvider.Meta().(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return err
 	}
@@ -1286,7 +1287,7 @@ func testAccCheckCSIDriverExists(csiDriverName string) error {
 }
 
 func testAccCheckKubernetesPodDestroy(s *terraform.State) error {
-	conn, err := testAccProvider.Meta().(KubeClientsets).MainClientset()
+	conn, err := testAccProvider.Meta().(provider.KubeClientsets).MainClientset()
 
 	if err != nil {
 		return err
@@ -1321,7 +1322,7 @@ func testAccCheckKubernetesPodExists(n string, obj *api.Pod) resource.TestCheckF
 			return fmt.Errorf("Not found: %s", n)
 		}
 
-		conn, err := testAccProvider.Meta().(KubeClientsets).MainClientset()
+		conn, err := testAccProvider.Meta().(provider.KubeClientsets).MainClientset()
 		if err != nil {
 			return err
 		}

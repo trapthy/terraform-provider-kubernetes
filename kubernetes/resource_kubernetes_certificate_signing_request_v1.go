@@ -11,6 +11,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 
 	certificates "k8s.io/api/certificates/v1"
 	v1 "k8s.io/api/core/v1"
@@ -86,7 +87,7 @@ const TerraformAutoApproveReason = "TerraformAutoApprove"
 const TerraformAutoApproveMessage = "This CertificateSigningRequest was auto-approved by Terraform"
 
 func resourceKubernetesCertificateSigningRequestV1Create(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}

@@ -16,6 +16,7 @@ import (
 
 	corev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
 	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 )
 
 func resourceKubernetesIngress() *schema.Resource {
@@ -166,7 +167,7 @@ func resourceKubernetesIngressSchemaV1() map[string]*schema.Schema {
 }
 
 func resourceKubernetesIngressCreate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -227,7 +228,7 @@ func resourceKubernetesIngressRead(ctx context.Context, d *schema.ResourceData, 
 		d.SetId("")
 		return diag.Diagnostics{}
 	}
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -269,7 +270,7 @@ func resourceKubernetesIngressRead(ctx context.Context, d *schema.ResourceData, 
 }
 
 func resourceKubernetesIngressUpdate(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -301,7 +302,7 @@ func resourceKubernetesIngressUpdate(ctx context.Context, d *schema.ResourceData
 }
 
 func resourceKubernetesIngressDelete(ctx context.Context, d *schema.ResourceData, meta interface{}) diag.Diagnostics {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return diag.FromErr(err)
 	}
@@ -340,7 +341,7 @@ func resourceKubernetesIngressDelete(ctx context.Context, d *schema.ResourceData
 }
 
 func resourceKubernetesIngressExists(ctx context.Context, d *schema.ResourceData, meta interface{}) (bool, error) {
-	conn, err := meta.(KubeClientsets).MainClientset()
+	conn, err := meta.(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return false, err
 	}
