@@ -12,6 +12,7 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/terraform"
 
 	providermetav1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/meta/v1"
+	"github.com/hashicorp/terraform-provider-kubernetes/kubernetes/provider"
 
 	api "k8s.io/api/core/v1"
 	storageapi "k8s.io/api/storage/v1"
@@ -501,7 +502,7 @@ func TestAccKubernetesPersistentVolumeClaim_expansionMinikube(t *testing.T) {
 }
 
 func testAccCheckKubernetesPersistentVolumeClaimDestroy(s *terraform.State) error {
-	conn, err := testAccProvider.Meta().(KubeClientsets).MainClientset()
+	conn, err := testAccProvider.Meta().(provider.KubeClientsets).MainClientset()
 	if err != nil {
 		return err
 	}
@@ -546,7 +547,7 @@ func testAccCheckKubernetesPersistentVolumeClaimExists(n string, obj *api.Persis
 			return fmt.Errorf("Not found: %s", n)
 		}
 
-		conn, err := testAccProvider.Meta().(KubeClientsets).MainClientset()
+		conn, err := testAccProvider.Meta().(provider.KubeClientsets).MainClientset()
 		if err != nil {
 			return err
 		}
