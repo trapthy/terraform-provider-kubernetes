@@ -9,7 +9,6 @@ import (
 	"github.com/hashicorp/terraform-plugin-sdk/v2/helper/schema"
 
 	appsv1 "k8s.io/api/apps/v1"
-	v1 "k8s.io/api/apps/v1"
 	corev1 "k8s.io/api/core/v1"
 
 	providercorev1 "github.com/hashicorp/terraform-provider-kubernetes/kubernetes/core/v1"
@@ -19,7 +18,7 @@ import (
 
 // Expanders
 
-func expandStatefulSetSpec(s []interface{}) (*v1.StatefulSetSpec, error) {
+func expandStatefulSetSpec(s []interface{}) (*appsv1.StatefulSetSpec, error) {
 	obj := &appsv1.StatefulSetSpec{}
 	if len(s) == 0 || s[0] == nil {
 		return obj, nil
