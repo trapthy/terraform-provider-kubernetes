@@ -21,7 +21,7 @@ func dataSourceKubernetesIngress() *schema.Resource {
 	return &schema.Resource{
 		ReadContext: dataSourceKubernetesIngressRead,
 		Schema: map[string]*schema.Schema{
-			"metadata": providermetav1.MetadataSchema("ingress", false),
+			"metadata": providermetav1.NamespacedMetadataSchema("ingress", false),
 			"spec": {
 				Type:        schema.TypeList,
 				Description: docIngress["spec"],
